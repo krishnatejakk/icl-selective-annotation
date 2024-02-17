@@ -13,7 +13,7 @@ import time
 # from torch import nn
 from tqdm import tqdm
 from datasets import load_metric
-from transformers import AutoTokenizer, GPTJForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 # from sentence_transformers import SentenceTransformer
 # from datasets import load_dataset
@@ -95,8 +95,8 @@ if __name__ == "__main__":
             tokenizer_gpt = AutoTokenizer.from_pretrained(
                 args.model_name, cache_dir=args.model_cache_dir
             )
-            inference_model = GPTJForCausalLM.from_pretrained(
-                "EleutherAI/gpt-j-6B", cache_dir=args.model_cache_dir
+            inference_model = AutoModelForCausalLM.from_pretrained(
+                args.model_name, cache_dir=args.model_cache_dir
             )
             inference_model.cuda()
             inference_model.eval()
