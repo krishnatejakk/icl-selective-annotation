@@ -1,1 +1,7 @@
 .idea/*
+scratch
+__pycache__
+datasets/*
+outputs/*
+models/*
+.hidden.transformers/*

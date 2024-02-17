@@ -1,0 +1,14 @@
+bitsandbytes
+datasets
+english_words
+nltk
+numpy
+pandas
+python-dotenv
+rapidfuzz
+Requests
+scikit_learn
+sentence_transformers
+sqlparse
+torch
+tqdm
