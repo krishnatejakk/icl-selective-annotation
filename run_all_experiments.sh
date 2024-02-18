@@ -84,17 +84,5 @@ python main.py --task_name xsum --selective_annotation_method facility_location_
 python main.py --task_name xsum --selective_annotation_method graph_cut_function --model_cache_dir models --data_cache_dir datasets --output_dir outputs/xsum/graph_cut_function --model_name=EleutherAI/gpt-j-6B
 python main.py --task_name xsum --selective_annotation_method log_determinant_function --model_cache_dir models --data_cache_dir datasets --output_dir outputs/xsum/log_determinant_function --model_name=EleutherAI/gpt-j-6B
 
-python main.py --task_name nq --selective_annotation_method random --model_cache_dir models --data_cache_dir datasets --output_dir outputs/nq/random --model_name=EleutherAI/gpt-j-6B
-python main.py --task_name nq --selective_annotation_method diversity --model_cache_dir models --data_cache_dir datasets --output_dir outputs/nq/diversity --model_name=EleutherAI/gpt-j-6B
-python main.py --task_name nq --selective_annotation_method fast_votek --model_cache_dir models --data_cache_dir datasets --output_dir outputs/nq/fast_votek --model_name=EleutherAI/gpt-j-6B
-python main.py --task_name nq --selective_annotation_method mfl --model_cache_dir models --data_cache_dir datasets --output_dir outputs/nq/mfl --model_name=EleutherAI/gpt-j-6B
-python main.py --task_name nq --selective_annotation_method votek --model_cache_dir models --data_cache_dir datasets --output_dir outputs/nq/votek --model_name=EleutherAI/gpt-j-6B
-python main.py --task_name nq --selective_annotation_method least_confidence --model_cache_dir models --data_cache_dir datasets --output_dir outputs/nq/least_confidence --model_name=EleutherAI/gpt-j-6B
-python main.py --task_name nq --selective_annotation_method disparity_min_function --model_cache_dir models --data_cache_dir datasets --output_dir outputs/nq/disparity_min_function --model_name=EleutherAI/gpt-j-6B
-python main.py --task_name nq --selective_annotation_method disparity_sum_function --model_cache_dir models --data_cache_dir datasets --output_dir outputs/nq/disparity_sum_function --model_name=EleutherAI/gpt-j-6B
-python main.py --task_name nq --selective_annotation_method facility_location_function --model_cache_dir models --data_cache_dir datasets --output_dir outputs/nq/facility_location_function --model_name=EleutherAI/gpt-j-6B
-python main.py --task_name nq --selective_annotation_method graph_cut_function --model_cache_dir models --data_cache_dir datasets --output_dir outputs/nq/graph_cut_function --model_name=EleutherAI/gpt-j-6B
-python main.py --task_name nq --selective_annotation_method log_determinant_function --model_cache_dir models --data_cache_dir datasets --output_dir outputs/nq/log_determinant_function --model_name=EleutherAI/gpt-j-6B
-
 
 python exelify_results.py

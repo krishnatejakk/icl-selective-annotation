@@ -6,7 +6,7 @@ TASK_NAMES = [
     "dbpedia_14",
     "hellaswag",
     "xsum",
-    "nq",
+    # "nq", # Needs OpenAI API
 ]
 
 
