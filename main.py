@@ -20,6 +20,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 # from sklearn.metrics import f1_score
 from MetaICL.metaicl.data import MetaICLData
 from MetaICL.metaicl.model import MetaICLModel
+from constants import SELECTIVE_ANNOTATION_METHODS, TASK_NAMES
 
 # from collections import defaultdict
 from get_task import get_task
@@ -74,6 +75,7 @@ if __name__ == "__main__":
         format_example,
         label_map,
     ) = get_task(args=args)
+
     total_train_embeds = calculate_sentence_transformer_embedding(
         text_to_encode=train_text_to_encode, args=args
     )
@@ -81,16 +83,11 @@ if __name__ == "__main__":
         text_to_encode=eval_text_to_encode, args=args
     )
 
-    if args.task_name in [
-        "mnli",
-        "rte",
-        "sst5",
-        "mrpc",
-        "dbpedia_14",
-        "hellaswag",
-        "xsum",
-        "nq",
-    ]:
+    assert (
+        args.selective_annotation_method in SELECTIVE_ANNOTATION_METHODS
+    ), f"Annotation method {args.selective_annotation_method} unknown"
+
+    if args.task_name in TASK_NAMES:
         if args.task_name == "xsum":
             tokenizer_gpt = AutoTokenizer.from_pretrained(
                 args.model_name, cache_dir=args.model_cache_dir
