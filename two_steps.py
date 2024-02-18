@@ -9,6 +9,7 @@ from tqdm import tqdm
 from transformers import AutoTokenizer
 from collections import defaultdict
 from sklearn.metrics.pairwise import cosine_similarity
+from submodlib.functions.facilityLocation import FacilityLocationFunction
 
 
 def prompt_retrieval(
@@ -492,6 +493,8 @@ def selective_annotation(args, **kwargs):
             tokenizer_gpt=kwargs["tokenizer_gpt"],
             args=args,
         )
+    elif args.selective_annotation_method == "facility_location":
+        ...
     else:
         raise ValueError(
             f"The selective annotation method {args.selective_annotation_method} is not supported"
