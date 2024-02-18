@@ -14,7 +14,9 @@ def main(model_name):
                 )
                 file.write(command)
 
-        file.write("\n\n")
+            file.write("\n")
+
+        file.write("\n")
         file.write("python exelify_results.py\n")
 
 

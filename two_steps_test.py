@@ -1,5 +1,6 @@
 import unittest
 import torch
+from constants import QUERYLESS_SUBMODLIB_FUNCTIONS
 from two_steps import selective_annotation
 
 
@@ -20,11 +21,28 @@ class TestSelectiveAnnotation(unittest.TestCase):
         # Call the selective_annotation function
         selected_indices = selective_annotation(args, **kwargs)
 
-        print(selected_indices)
-
         assert type(selected_indices) == list
         assert type(selected_indices[0]) == int
         assert len(selected_indices) == args.annotation_size
+
+    # python -m unittest two_steps_test.TestSelectiveAnnotation.test_submodlib_queryless -v
+    def test_submodlib_queryless(self):
+        num_embeddings = 300
+        embedding_dim = 128
+        embeddings = torch.randn(num_embeddings, embedding_dim)
+
+        for method in QUERYLESS_SUBMODLIB_FUNCTIONS:
+            with self.subTest(method=method):
+                args = type("", (), {})()
+                args.selective_annotation_method = method
+                args.annotation_size = 150
+                kwargs = {"embeddings": embeddings}
+
+                selected_indices = selective_annotation(args, **kwargs)
+
+                assert type(selected_indices) == list
+                assert type(selected_indices[0]) == int
+                assert len(selected_indices) == args.annotation_size
 
     # python -m unittest two_steps_test.TestSelectiveAnnotation.test_mfl_selection -v
     def test_mfl_selection(self):

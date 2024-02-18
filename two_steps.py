@@ -9,7 +9,9 @@ from tqdm import tqdm
 from transformers import AutoTokenizer
 from collections import defaultdict
 from sklearn.metrics.pairwise import cosine_similarity
-from submodlib.functions.facilityLocation import FacilityLocationFunction
+import submodlib
+from constants import QUERYLESS_SUBMODLIB_FUNCTIONS
+from utils import get_accepted_kwargs
 
 
 def prompt_retrieval(
@@ -493,14 +495,20 @@ def selective_annotation(args, **kwargs):
             tokenizer_gpt=kwargs["tokenizer_gpt"],
             args=args,
         )
-    elif args.selective_annotation_method == "facility_location":
-        facilty_location_wrapper = FacilityLocationFunction(
-            n=kwargs["embeddings"].shape[0],
-            mode="dense",
-            data=kwargs["embeddings"],
-            metric="euclidean",
-        )
-        selected_indices_and_scores = facilty_location_wrapper.maximize(
+    elif args.selective_annotation_method in QUERYLESS_SUBMODLIB_FUNCTIONS:
+        FunctionClass = getattr(submodlib.functions, args.selective_annotation_method)
+
+        universal_kwargs = {
+            "n": kwargs["embeddings"].shape[0],
+            "mode": "dense",
+            "data": kwargs["embeddings"],
+            "metric": "euclidean",
+            "lambdaVal": 0.5,  # TODO: Sweep
+        }
+
+        filtered_kwargs = get_accepted_kwargs(FunctionClass, universal_kwargs)
+        wrapper = FunctionClass(**filtered_kwargs)
+        selected_indices_and_scores = wrapper.maximize(
             budget=args.annotation_size,
             optimizer="NaiveGreedy",
         )

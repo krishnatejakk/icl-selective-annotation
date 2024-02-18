@@ -1,3 +1,4 @@
+import inspect
 import torch
 import json
 from tqdm import tqdm
@@ -482,3 +483,20 @@ def evaluate(preds: dict, golds: dict):
     f1 = compute_prf(golds, preds)[0]
 
     return jga, acc, f1
+
+
+def get_accepted_kwargs(func, universal_kwargs):
+    """
+    Filters the universal_kwargs to include only those accepted by func.
+
+    Parameters:
+    - func: The function (or constructor) to inspect.
+    - universal_kwargs: A dictionary of keyword arguments to filter.
+
+    Returns:
+    - A dictionary containing only the kwargs accepted by func.
+    """
+    accepted_params = inspect.signature(func).parameters
+    return {
+        key: value for key, value in universal_kwargs.items() if key in accepted_params
+    }
