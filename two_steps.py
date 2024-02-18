@@ -494,7 +494,17 @@ def selective_annotation(args, **kwargs):
             args=args,
         )
     elif args.selective_annotation_method == "facility_location":
-        ...
+        facilty_location_wrapper = FacilityLocationFunction(
+            n=kwargs["embeddings"].shape[0],
+            mode="dense",
+            data=kwargs["embeddings"],
+            metric="euclidean",
+        )
+        selected_indices_and_scores = facilty_location_wrapper.maximize(
+            budget=args.annotation_size,
+            optimizer="NaiveGreedy",
+        )
+        selected_indices = [idx for idx, _ in selected_indices_and_scores]
     else:
         raise ValueError(
             f"The selective annotation method {args.selective_annotation_method} is not supported"
