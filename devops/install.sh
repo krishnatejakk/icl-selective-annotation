@@ -8,3 +8,5 @@ pip install -r requirements-torch.txt --index-url https://download.pytorch.org/w
 pip install -r requirements.txt
 pip uninstall transformers -y
 pip install -e ./transformers
+sudo apt-get update && sudo apt-get install g++ -y
+SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL=True pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ submodlib
