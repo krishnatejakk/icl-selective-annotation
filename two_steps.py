@@ -1,8 +1,8 @@
+import copy
 import os
 import random
 import json
 import torch
-import time
 import numpy as np
 from torch import nn
 from tqdm import tqdm
@@ -10,7 +10,10 @@ from transformers import AutoTokenizer
 from collections import defaultdict
 from sklearn.metrics.pairwise import cosine_similarity
 import submodlib
-from constants import QUERYLESS_SUBMODLIB_FUNCTIONS
+from constants import (
+    QUERYFULL_SUBMODLIB_FUNCTIONS,
+    QUERYLESS_SUBMODLIB_FUNCTIONS,
+)
 from utils import get_accepted_kwargs
 
 
@@ -502,6 +505,45 @@ def selective_annotation(args, **kwargs):
             "n": kwargs["embeddings"].shape[0],
             "mode": "dense",
             "data": kwargs["embeddings"],
+            "metric": "euclidean",
+            "lambdaVal": 0.5,  # TODO: Sweep
+        }
+
+        filtered_kwargs = get_accepted_kwargs(FunctionClass, universal_kwargs)
+        wrapper = FunctionClass(**filtered_kwargs)
+        selected_indices_and_scores = wrapper.maximize(
+            budget=args.annotation_size,
+            optimizer="NaiveGreedy",
+        )
+        selected_indices = [idx for idx, _ in selected_indices_and_scores]
+    elif args.selective_annotation_method in QUERYFULL_SUBMODLIB_FUNCTIONS:
+        query_args = copy.copy(args)
+        query_args.selective_annotation_method = "least_confidence"
+        query_indices = iterative_selection(
+            train_embs=kwargs["embeddings"],
+            test_embs=kwargs["embeddings"],
+            train_examples=kwargs["train_examples"],
+            test_examples=kwargs["train_examples"],
+            return_string=kwargs["return_string"],
+            format_example=kwargs["format_example"],
+            maximum_input_len=kwargs["maximum_input_len"],
+            label_map=kwargs["label_map"],
+            single_context_example_len=kwargs["single_context_example_len"],
+            inference_model=kwargs["inference_model"],  # AutoModelForCausalLM
+            inference_data_module=kwargs["inference_data_module"],
+            tokenizer_gpt=kwargs["tokenizer_gpt"],
+            args=query_args,
+        )
+        query_data = kwargs["embeddings"][query_indices]
+        data = kwargs["embeddings"]
+        FunctionClass = getattr(submodlib.functions, args.selective_annotation_method)
+
+        universal_kwargs = {
+            "n": data.shape[0],
+            "num_queries": query_data.shape[0],
+            "data": data,
+            "queryData": query_data,
+            "mode": "dense",
             "metric": "euclidean",
             "lambdaVal": 0.5,  # TODO: Sweep
         }

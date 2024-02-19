@@ -4,6 +4,11 @@ import random
 from tqdm import tqdm
 from datasets import load_dataset
 
+DEBUG_ANNOTATION_SIZE = 2
+DEBUG_BATCH_SIZE = 1
+DEBUG_TRAIN_SAMPLES = 5
+DEBUG_EVAL_SAMPLES = 2
+
 
 def format_dataset(sample):
     question = sample["question"]["text"]
@@ -216,10 +221,10 @@ def get_task(args):
             ) as f:
                 json.dump(total_eval_examples, f, indent=4)
         if args.debug:
-            args.annotation_size = 10
-            args.batch_size = 1
-            total_train_examples = total_train_examples[:50]
-            total_eval_examples = total_eval_examples[:5]
+            args.annotation_size = DEBUG_ANNOTATION_SIZE
+            args.batch_size = DEBUG_BATCH_SIZE
+            total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
+            total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
         def format_example(example, label_map, **kwargs):
             return (
@@ -274,10 +279,10 @@ def get_task(args):
             ) as f:
                 json.dump(total_eval_examples, f, indent=4)
         if args.debug:
-            args.annotation_size = 10
-            args.batch_size = 1
-            total_train_examples = total_train_examples[:50]
-            total_eval_examples = total_eval_examples[:5]
+            args.annotation_size = DEBUG_ANNOTATION_SIZE
+            args.batch_size = DEBUG_BATCH_SIZE
+            total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
+            total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
         def format_example(example, label_map, **kwargs):
             return (
@@ -328,10 +333,10 @@ def get_task(args):
             ) as f:
                 json.dump(total_eval_examples, f, indent=4)
         if args.debug:
-            args.annotation_size = 10
-            args.batch_size = 1
-            total_train_examples = total_train_examples[:50]
-            total_eval_examples = total_eval_examples[:5]
+            args.annotation_size = DEBUG_ANNOTATION_SIZE
+            args.batch_size = DEBUG_BATCH_SIZE
+            total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
+            total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
         def format_example(example, label_map, **kwargs):
             return (
@@ -384,10 +389,10 @@ def get_task(args):
             ) as f:
                 json.dump(total_eval_examples, f, indent=4)
         if args.debug:
-            args.annotation_size = 10
-            args.batch_size = 1
-            total_train_examples = total_train_examples[:50]
-            total_eval_examples = total_eval_examples[:5]
+            args.annotation_size = DEBUG_ANNOTATION_SIZE
+            args.batch_size = DEBUG_BATCH_SIZE
+            total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
+            total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
         def format_example(example, label_map, **kwargs):
             return (
@@ -441,10 +446,10 @@ def get_task(args):
             ) as f:
                 json.dump(total_eval_examples, f, indent=4)
         if args.debug:
-            args.annotation_size = 10
-            args.batch_size = 1
-            total_train_examples = total_train_examples[:50]
-            total_eval_examples = total_eval_examples[:5]
+            args.annotation_size = DEBUG_ANNOTATION_SIZE
+            args.batch_size = DEBUG_BATCH_SIZE
+            total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
+            total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
         def format_example(example, label_map, **kwargs):
             return (
@@ -510,10 +515,10 @@ def get_task(args):
             ) as f:
                 json.dump(total_eval_examples, f, indent=4)
         if args.debug:
-            args.annotation_size = 10
-            args.batch_size = 1
-            total_train_examples = total_train_examples[:50]
-            total_eval_examples = total_eval_examples[:5]
+            args.annotation_size = DEBUG_ANNOTATION_SIZE
+            args.batch_size = DEBUG_BATCH_SIZE
+            total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
+            total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
         def format_example(example, label_map, **kwargs):
             return (
@@ -573,10 +578,10 @@ def get_task(args):
             ) as f:
                 json.dump(total_eval_examples, f, indent=4)
         if args.debug:
-            args.annotation_size = 10
-            args.batch_size = 1
-            total_train_examples = total_train_examples[:50]
-            total_eval_examples = total_eval_examples[:5]
+            args.annotation_size = DEBUG_ANNOTATION_SIZE
+            args.batch_size = DEBUG_BATCH_SIZE
+            total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
+            total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
         def format_example(example, label_map, **kwargs):
             return (
@@ -640,10 +645,10 @@ def get_task(args):
             ) as f:
                 json.dump(total_eval_examples, f, indent=4)
         if args.debug:
-            args.annotation_size = 10
-            args.batch_size = 1
-            total_train_examples = total_train_examples[:50]
-            total_eval_examples = total_eval_examples[:5]
+            args.annotation_size = DEBUG_ANNOTATION_SIZE
+            args.batch_size = DEBUG_BATCH_SIZE
+            total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
+            total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
         def format_example(example, label_map, **kwargs):
             if example["category"] in ["yes", "no"]:
