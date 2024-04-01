@@ -15,7 +15,7 @@ from constants import (
     QUERYLESS_SUBMODLIB_FUNCTIONS,
 )
 from utils import get_accepted_kwargs
-
+from MetaICL.utils.compute_similarity_kernel_torch import compute_pairwise_similarities
 
 def prompt_retrieval(
     train_embs,
@@ -500,22 +500,38 @@ def selective_annotation(args, **kwargs):
         )
     elif args.selective_annotation_method in QUERYLESS_SUBMODLIB_FUNCTIONS:
         FunctionClass = getattr(submodlib.functions, args.selective_annotation_method)
+        
+        sijs = compute_pairwise_similarities(tensor1= kwargs["embeddings"], sparse=False, metric="cosine", scaling="additive") 
+        sijs = sijs.cpu().numpy()
+
+        if args.selective_annotation_method == "GraphCutFunction":
+            similarity_kernel_name = "ggsijs"
+            lambdaVal = 0.4
+        else:
+            similarity_kernel_name = "sijs"
+            lambdaVal = 1
 
         universal_kwargs = {
             "n": kwargs["embeddings"].shape[0],
             "mode": "dense",
-            "data": kwargs["embeddings"],
-            "metric": "euclidean",
-            "lambdaVal": 0.5,  # TODO: Sweep
+            similarity_kernel_name: sijs,
+            "lambdaVal": lambdaVal,  # TODO: Sweep
+            "separate_rep": False,
         }
+
+        if args.selective_annotation_method in ["DisparitySumFunction", "DisparityMinFunction"]:
+            optimizer_value = "NaiveGreedy"
+        else:
+            optimizer_value = "LazyGreedy"
 
         filtered_kwargs = get_accepted_kwargs(FunctionClass, universal_kwargs)
         wrapper = FunctionClass(**filtered_kwargs)
         selected_indices_and_scores = wrapper.maximize(
             budget=args.annotation_size,
-            optimizer="NaiveGreedy",
+            optimizer=optimizer_value,
         )
         selected_indices = [idx for idx, _ in selected_indices_and_scores]
+        
     elif args.selective_annotation_method in QUERYFULL_SUBMODLIB_FUNCTIONS:
         query_args = copy.copy(args)
         query_args.selective_annotation_method = "least_confidence"
