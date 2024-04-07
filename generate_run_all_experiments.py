@@ -2,18 +2,21 @@ import argparse
 from constants import TASK_NAMES, SELECTIVE_ANNOTATION_METHODS
 
 
+def generate_commands(model_name):
+    escaped_model_name = model_name.split("/")[-1]
+    for task in TASK_NAMES:
+        for method in SELECTIVE_ANNOTATION_METHODS:
+            command = f"python main.py --task_name {task} --selective_annotation_method {method} "
+            command += f"--model_cache_dir models --data_cache_dir datasets "
+            command += f"--output_dir outputs/{escaped_model_name}/{task}/{method} --model_name={model_name}"
+            yield command
+
+
 def main(model_name):
     with open("run_all_experiments.sh", "w") as file:
         file.write("#!/bin/bash\n\n")
-        for task in TASK_NAMES:
-            for method in SELECTIVE_ANNOTATION_METHODS:
-                command = f"python main.py --task_name {task} --selective_annotation_method {method} "
-                command += f"--model_cache_dir models --data_cache_dir datasets "
-                command += (
-                    f"--output_dir outputs/{task}/{method} --model_name={model_name}\n"
-                )
-                file.write(command)
-
+        for command in generate_commands(model_name):
+            file.write(command)
             file.write("\n")
 
         file.write("\n")
