@@ -6,7 +6,7 @@
 source devops/install.sh
 python generate_run_py.py --model_name=EleutherAI/gpt-j-6B
 python run.py
-python generate_run_py.py --model_name=meta-llama/Llama-2-7b
+python generate_run_py.py --model_name=meta-llama/Llama-2-7b-hf
 python run.py
 python generate_run_py.py --model_name=mistralai/Mistral-7B-v0.1
 python run.py
