@@ -6,13 +6,10 @@ import os
 import torch
 import numpy as np
 import json
-import nltk
-import time
 
 # import time
 # from torch import nn
 from tqdm import tqdm
-from datasets import load_metric
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 # from sentence_transformers import SentenceTransformer
@@ -24,6 +21,8 @@ from constants import SELECTIVE_ANNOTATION_METHODS, TASK_NAMES
 
 # from collections import defaultdict
 from get_task import get_task
+from inference_utils import inference_for_xsum
+from post_process_utils import post_process_xsum
 from utils import calculate_sentence_transformer_embedding, expand_to_aliases
 from two_steps import selective_annotation, prompt_retrieval
 
@@ -53,14 +52,6 @@ def set_seed(seed: int):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-
-
-def postprocess_text(preds, labels):
-    preds = [pred.strip() for pred in preds]
-    labels = [label.strip() for label in labels]
-    preds = ["\n".join(nltk.sent_tokenize(pred)) for pred in preds]
-    labels = ["\n".join(nltk.sent_tokenize(label)) for label in labels]
-    return preds, labels
 
 
 if __name__ == "__main__":
@@ -225,47 +216,16 @@ if __name__ == "__main__":
                             one_test_example[2]["endings"][one_test_example[2]["label"]]
                         )
                     elif args.task_name == "xsum":
-                        with open(os.path.join(prompt_cache_dir, file)) as f:
-                            one_test_example = json.load(f)
-                        context = one_test_example[1]
-                        input_ids = tokenizer_gpt(
-                            context, return_tensors="pt"
-                        ).input_ids
-                        input_ids = input_ids[:, :1900]
-                        input_len = input_ids.shape[1]
-                        input_ids = input_ids.to(device)
-                        gen_tokens = inference_model.generate(
-                            input_ids,
-                            do_sample=False,
-                            temperature=0.7,
-                            max_length=input_len + 64,
-                            output_scores=True,
-                            return_dict_in_generate=True,
+                        gold, pred = inference_for_xsum(
+                            tokenizer_gpt,
+                            inference_model,
+                            device,
+                            prompt_cache_dir,
+                            output_dir,
+                            file,
                         )
-                        generated_text = tokenizer_gpt.batch_decode(
-                            gen_tokens.sequences.view(-1, 1)
-                        )
-                        stop = ["--", "\n", ";", "#"]
-                        stop_index = len(generated_text)
-                        for i, c in enumerate(generated_text):
-                            if i > input_len and c.strip(" ") in stop:
-                                stop_index = i
-                                break
-                        prediction = " ".join(generated_text[input_len:stop_index])
-                        golds.append(one_test_example[2]["summary"])
-                        preds.append(prediction)
-                        with open(f"{output_dir}/{file}", "w") as f:
-                            json.dump(
-                                [
-                                    " ".join(generated_text[input_len:]),
-                                    " ".join(generated_text[input_len:stop_index]),
-                                    one_test_example[2]["summary"],
-                                    input_len,
-                                    stop_index,
-                                ],
-                                f,
-                                indent=4,
-                            )
+                        golds.append(gold)
+                        preds.append(pred)
                     elif args.task_name == "nq":
                         raise NotImplementedError("Removed things that use OpenAI API")
                         # cur_key = model_keys[execution_count % len(model_keys)]
@@ -299,20 +259,27 @@ if __name__ == "__main__":
                             json.dump([prediction, one_test_example[2]["label"]], f)
                         preds.append(label_to_digit[prediction])
                         golds.append(one_test_example[2]["label"])
+                else:
+                    with open(os.path.join(output_dir, file)) as f:
+                        result = json.load(f)
+
+                    if args.task_name == "xsum":
+                        _, pred, gold, _, _ = result
+                        golds.append(gold)
+                        preds.append(pred)
+                    else:
+                        raise NotImplementedError(
+                            f"Delete {output_dir} directory and rerun"
+                        )
         if args.task_name == "xsum":
-            assert len(golds) == len(
-                preds
-            ), f"len(golds)={len(golds)}, len(preds)={len(preds)}"
-            preds, golds = postprocess_text(preds, golds)
-            metric = load_metric("rouge")
-            result = metric.compute(
-                predictions=preds, references=golds, use_stemmer=True
-            )
-            result = {key: value.mid.fmeasure * 100 for key, value in result.items()}
-            result = {k: round(v, 4) for k, v in result.items()}
-            with open(os.path.join(args.output_dir, "result_summary.json"), "w") as f:
-                json.dump(result, f)
-            print(result)
+            assert len(golds) > 0 and len(golds) == len(preds)
+            with open(os.path.join(args.output_dir, "result_input.json"), "w") as f:
+                json.dump(
+                    [{"gold": gold, "pred": pred} for gold, pred in zip(golds, preds)],
+                    f,
+                    indent=2,
+                )
+            post_process_xsum(args, golds, preds)
         elif args.task_name == "nq":
             correct = 0
             total = 0

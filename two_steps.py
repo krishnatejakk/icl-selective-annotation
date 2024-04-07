@@ -15,7 +15,8 @@ from constants import (
     QUERYLESS_SUBMODLIB_FUNCTIONS,
 )
 from utils import get_accepted_kwargs
-from MetaICL.utils.compute_similarity_kernel_torch import compute_pairwise_similarities
+from MetaICL.utils.compute_similarity_kernel_numpy import compute_pairwise_similarities
+
 
 def prompt_retrieval(
     train_embs,
@@ -500,8 +501,13 @@ def selective_annotation(args, **kwargs):
         )
     elif args.selective_annotation_method in QUERYLESS_SUBMODLIB_FUNCTIONS:
         FunctionClass = getattr(submodlib.functions, args.selective_annotation_method)
-        
-        sijs = compute_pairwise_similarities(tensor1= kwargs["embeddings"], sparse=False, metric="cosine", scaling="additive") 
+
+        sijs = compute_pairwise_similarities(
+            tensor1=kwargs["embeddings"],
+            sparse=False,
+            metric="cosine",
+            scaling="additive",
+        )
         sijs = sijs.cpu().numpy()
 
         if args.selective_annotation_method == "GraphCutFunction":
@@ -519,7 +525,10 @@ def selective_annotation(args, **kwargs):
             "separate_rep": False,
         }
 
-        if args.selective_annotation_method in ["DisparitySumFunction", "DisparityMinFunction"]:
+        if args.selective_annotation_method in [
+            "DisparitySumFunction",
+            "DisparityMinFunction",
+        ]:
             optimizer_value = "NaiveGreedy"
         else:
             optimizer_value = "LazyGreedy"
@@ -531,7 +540,7 @@ def selective_annotation(args, **kwargs):
             optimizer=optimizer_value,
         )
         selected_indices = [idx for idx, _ in selected_indices_and_scores]
-        
+
     elif args.selective_annotation_method in QUERYFULL_SUBMODLIB_FUNCTIONS:
         query_args = copy.copy(args)
         query_args.selective_annotation_method = "least_confidence"

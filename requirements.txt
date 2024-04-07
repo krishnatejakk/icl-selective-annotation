@@ -12,3 +12,4 @@ sentence_transformers
 sqlparse
 torch
 tqdm
+rouge_score
