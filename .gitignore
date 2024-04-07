@@ -5,4 +5,4 @@ datasets/*
 outputs/*
 models/*
 .hidden.transformers/*
-results_summary.csv
+*_summary.csv
