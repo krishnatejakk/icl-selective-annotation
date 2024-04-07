@@ -178,6 +178,7 @@ if __name__ == "__main__":
                 all_labels.append(v)
                 label_to_digit[v] = k
         execution_count = 0
+        cold_run = True
         while running_flag:
             running_flag = False
             count += 1
@@ -186,6 +187,7 @@ if __name__ == "__main__":
                 bar.update(1)
                 if not os.path.isfile(os.path.join(output_dir, file)):
                     running_flag = True
+                    cold_run = False
 
                     if args.task_name == "hellaswag":
                         with open(os.path.join(prompt_cache_dir, file)) as f:
@@ -259,7 +261,7 @@ if __name__ == "__main__":
                             json.dump([prediction, one_test_example[2]["label"]], f)
                         preds.append(label_to_digit[prediction])
                         golds.append(one_test_example[2]["label"])
-                else:
+                elif cold_run:
                     with open(os.path.join(output_dir, file)) as f:
                         result = json.load(f)
 
@@ -302,7 +304,7 @@ if __name__ == "__main__":
                 f.write(f"{total} examples, accuracy is: {correct / total}\n")
             print(f"{total} examples, accuracy is: {correct / total}\n")
         else:
-            assert len(golds) == len(
+            assert len(golds) > 0 and len(golds) == len(
                 preds
             ), f"len(golds)={len(golds)}, len(preds)={len(preds)}"
             total = len(golds)
