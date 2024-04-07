@@ -53,11 +53,9 @@ def main(model_name):
 
 
 if __name__ == "__main__":
-    # python generate_run_all_experiments.py --model_name=EleutherAI/gpt-neo-125m
-    # python generate_run_all_experiments.py --model_name=EleutherAI/gpt-j-6B
-    parser = argparse.ArgumentParser(
-        description="Generate run_all_experiments.sh script."
-    )
+    # python generate_run_py.py --model_name=EleutherAI/gpt-neo-125m
+    # python generate_run_py.py --model_name=EleutherAI/gpt-j-6B
+    parser = argparse.ArgumentParser(description="Generate run.py script.")
     parser.add_argument(
         "--model_name",
         type=str,
