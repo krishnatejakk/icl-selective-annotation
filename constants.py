@@ -67,11 +67,11 @@ QUERYFULL_SUBMODLIB_FUNCTIONS = [
 
 SELECTIVE_ANNOTATION_METHODS = [
     "random",
+    *QUERYLESS_SUBMODLIB_FUNCTIONS,
     "diversity",
     "fast_votek",
-    "mfl",
+    #"mfl",
     "votek",
     "least_confidence",
-    *QUERYLESS_SUBMODLIB_FUNCTIONS,
     #*QUERYFULL_SUBMODLIB_FUNCTIONS,
 ]

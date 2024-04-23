@@ -187,41 +187,33 @@ def process_nq_examples(examples):
 def get_task(args):
     task_name = args.task_name
     data_cache_dir = args.data_cache_dir
+    
     if task_name == "mnli":
-        if os.path.isfile(
-            os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
-        ) and os.path.isfile(
-            os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
-        ):
-            print("use cached examples")
-            with open(
-                os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
-            ) as f:
-                total_train_examples = json.load(f)
-            with open(
-                os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
-            ) as f:
-                total_eval_examples = json.load(f)
+        mnli_datasets = load_dataset("glue", "mnli", cache_dir=data_cache_dir)
+        if args.subsample:
+            train_examples_file = os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
+            eval_examples_file = os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
+            
+            if os.path.isfile(train_examples_file) and os.path.isfile(eval_examples_file):
+                print("use cached examples")
+                with open(train_examples_file) as f:
+                    total_train_examples = json.load(f)
+                with open(eval_examples_file) as f:
+                    total_eval_examples = json.load(f)
+            else:
+                total_train_examples = random.sample([e for e in mnli_datasets["train"]], 3000)
+                total_eval_examples = random.sample([e for e in mnli_datasets["validation_matched"]], 256)
+                
+                total_train_examples = process_mnli_examples(total_train_examples)
+                total_eval_examples = process_mnli_examples(total_eval_examples)
+                
+                with open(train_examples_file, "w") as f:
+                    json.dump(total_train_examples, f, indent=4)
+                with open(eval_examples_file, "w") as f:
+                    json.dump(total_eval_examples, f, indent=4)
         else:
-            mnli_datasets = load_dataset("glue", "mnli", cache_dir=data_cache_dir)
-            total_train_examples = [e for e in mnli_datasets["train"]]
-            if args.subsample:
-                total_train_examples = random.sample(total_train_examples, 3000)
-            total_train_examples = process_mnli_examples(total_train_examples)
-            total_eval_examples = [e for e in mnli_datasets["validation_matched"]]
-            if args.subsample:
-                total_eval_examples = random.sample(total_eval_examples, 256)
-            total_eval_examples = process_mnli_examples(total_eval_examples)
-            with open(
-                os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
-                "w",
-            ) as f:
-                json.dump(total_train_examples, f, indent=4)
-            with open(
-                os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json"),
-                "w",
-            ) as f:
-                json.dump(total_eval_examples, f, indent=4)
+            total_train_examples = process_mnli_examples([e for e in mnli_datasets["train"]])
+            total_eval_examples = process_mnli_examples([e for e in mnli_datasets["validation_matched"]])            
         if args.debug:
             args.annotation_size = DEBUG_ANNOTATION_SIZE
             args.batch_size = DEBUG_BATCH_SIZE
@@ -303,40 +295,31 @@ def get_task(args):
         ]
         label_map = {0: "True", 1: "False"}
     elif task_name == "sst5":
-        if os.path.isfile(
-            os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
-        ) and os.path.isfile(
-            os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
-        ):
-            print("use cached examples")
-            with open(
-                os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
-            ) as f:
-                total_train_examples = json.load(f)
-            with open(
-                os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
-            ) as f:
-                total_eval_examples = json.load(f)
+        sst5_datasets = load_dataset("SetFit/sst5", cache_dir=data_cache_dir)
+        if args.subsample:
+            train_examples_file = os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
+            eval_examples_file = os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
+            
+            if os.path.isfile(train_examples_file) and os.path.isfile(eval_examples_file):
+                print("use cached examples")
+                with open(train_examples_file) as f:
+                    total_train_examples = json.load(f)
+                with open(eval_examples_file) as f:
+                    total_eval_examples = json.load(f)
+            else:
+                total_train_examples = random.sample([e for e in sst5_datasets["train"]], 3000)
+                total_eval_examples = random.sample([e for e in sst5_datasets["test"]], 256)
+                
+                total_train_examples = process_sst5_examples(total_train_examples)
+                total_eval_examples = process_sst5_examples(total_eval_examples)
+                
+                with open(train_examples_file, "w") as f:
+                    json.dump(total_train_examples, f, indent=4)
+                with open(eval_examples_file, "w") as f:
+                    json.dump(total_eval_examples, f, indent=4)
         else:
-            sst5_datasets = load_dataset("SetFit/sst5", cache_dir=data_cache_dir)
-            total_train_examples = [e for e in sst5_datasets["train"]]
-            if args.subsample:
-                total_train_examples = random.sample(total_train_examples, 3000)
-            total_train_examples = process_sst5_examples(total_train_examples)
-            total_eval_examples = [e for e in sst5_datasets["test"]]
-            if args.subsample:
-                total_eval_examples = random.sample(total_eval_examples, 256)
-            total_eval_examples = process_sst5_examples(total_eval_examples)
-            with open(
-                os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
-                "w",
-            ) as f:
-                json.dump(total_train_examples, f, indent=4)
-            with open(
-                os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json"),
-                "w",
-            ) as f:
-                json.dump(total_eval_examples, f, indent=4)
+            total_train_examples = process_sst5_examples([e for e in sst5_datasets["train"]])
+            total_eval_examples = process_sst5_examples([e for e in sst5_datasets["test"]])
         if args.debug:
             args.annotation_size = DEBUG_ANNOTATION_SIZE
             args.batch_size = DEBUG_BATCH_SIZE
@@ -361,40 +344,32 @@ def get_task(args):
             4: "very positive",
         }
     elif task_name == "mrpc":
-        if os.path.isfile(
-            os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
-        ) and os.path.isfile(
-            os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
-        ):
-            print("use cached examples")
-            with open(
-                os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
-            ) as f:
-                total_train_examples = json.load(f)
-            with open(
-                os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
-            ) as f:
-                total_eval_examples = json.load(f)
+        mrpc_datasets = load_dataset("glue", "mrpc", cache_dir=data_cache_dir)
+        if args.subsample:
+            train_examples_file = os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
+            eval_examples_file = os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
+            
+            if os.path.isfile(train_examples_file) and os.path.isfile(eval_examples_file):
+                print("use cached examples")
+                with open(train_examples_file) as f:
+                    total_train_examples = json.load(f)
+                with open(eval_examples_file) as f:
+                    total_eval_examples = json.load(f)
+            else:
+                total_train_examples = random.sample([e for e in mrpc_datasets["train"]], 3000)
+                total_eval_examples = random.sample([e for e in mrpc_datasets["validation"]], 256)
+                
+                total_train_examples = process_mrpc_examples(total_train_examples)
+                total_eval_examples = process_mrpc_examples(total_eval_examples)
+                
+                with open(train_examples_file, "w") as f:
+                    json.dump(total_train_examples, f, indent=4)
+                with open(eval_examples_file, "w") as f:
+                    json.dump(total_eval_examples, f, indent=4)
         else:
-            mrpc_datasets = load_dataset("glue", "mrpc", cache_dir=data_cache_dir)
-            total_train_examples = [e for e in mrpc_datasets["train"]]
-            if args.subsample:
-                total_train_examples = random.sample(total_train_examples, 3000)
-            total_train_examples = process_mrpc_examples(total_train_examples)
-            total_eval_examples = [e for e in mrpc_datasets["validation"]]
-            if args.subsample:
-                total_eval_examples = random.sample(total_eval_examples, 256)
-            total_eval_examples = process_mrpc_examples(total_eval_examples)
-            with open(
-                os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
-                "w",
-            ) as f:
-                json.dump(total_train_examples, f, indent=4)
-            with open(
-                os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json"),
-                "w",
-            ) as f:
-                json.dump(total_eval_examples, f, indent=4)
+            total_train_examples = process_mrpc_examples([e for e in mrpc_datasets["train"]])
+            total_eval_examples = process_mrpc_examples([e for e in mrpc_datasets["validation"]])
+
         if args.debug:
             args.annotation_size = DEBUG_ANNOTATION_SIZE
             args.batch_size = DEBUG_BATCH_SIZE
@@ -418,42 +393,31 @@ def get_task(args):
         ]
         label_map = {0: "not equivalent", 1: "equivalent"}
     elif task_name == "dbpedia_14":
-        if os.path.isfile(
-            os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
-        ) and os.path.isfile(
-            os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
-        ):
-            print("use cached examples")
-            with open(
-                os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
-            ) as f:
-                total_train_examples = json.load(f)
-            with open(
-                os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
-            ) as f:
-                total_eval_examples = json.load(f)
+        dbpedia_datasets = load_dataset("fancyzhx/dbpedia_14", cache_dir=data_cache_dir)
+        if args.subsample:
+            train_examples_file = os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
+            eval_examples_file = os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
+            
+            if os.path.isfile(train_examples_file) and os.path.isfile(eval_examples_file):
+                print("use cached examples")
+                with open(train_examples_file) as f:
+                    total_train_examples = json.load(f)
+                with open(eval_examples_file) as f:
+                    total_eval_examples = json.load(f)
+            else:
+                total_train_examples = random.sample([e for e in dbpedia_datasets["train"]], 3000)
+                total_eval_examples = random.sample([e for e in dbpedia_datasets["test"]], 256)
+                
+                total_train_examples = process_dbpedia_examples(total_train_examples)
+                total_eval_examples = process_dbpedia_examples(total_eval_examples)
+                
+                with open(train_examples_file, "w") as f:
+                    json.dump(total_train_examples, f, indent=4)
+                with open(eval_examples_file, "w") as f:
+                    json.dump(total_eval_examples, f, indent=4)
         else:
-            dbpedia_datasets = load_dataset(
-                "fancyzhx/dbpedia_14", cache_dir=data_cache_dir
-            )
-            total_train_examples = [e for e in dbpedia_datasets["train"]]
-            if args.subsample:
-                total_train_examples = random.sample(total_train_examples, 3000)
-            total_train_examples = process_dbpedia_examples(total_train_examples)
-            total_eval_examples = [e for e in dbpedia_datasets["test"]]
-            if args.subsample:
-                total_eval_examples = random.sample(total_eval_examples, 256)
-            total_eval_examples = process_dbpedia_examples(total_eval_examples)
-            with open(
-                os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
-                "w",
-            ) as f:
-                json.dump(total_train_examples, f, indent=4)
-            with open(
-                os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json"),
-                "w",
-            ) as f:
-                json.dump(total_eval_examples, f, indent=4)
+            total_train_examples = process_dbpedia_examples([e for e in dbpedia_datasets["train"]])
+            total_eval_examples = process_dbpedia_examples([e for e in dbpedia_datasets["test"]])
         if args.debug:
             args.annotation_size = DEBUG_ANNOTATION_SIZE
             args.batch_size = DEBUG_BATCH_SIZE
@@ -491,40 +455,31 @@ def get_task(args):
             13: "written work",
         }
     elif task_name == "hellaswag":
-        if os.path.isfile(
-            os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
-        ) and os.path.isfile(
-            os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
-        ):
-            print("use cached examples")
-            with open(
-                os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
-            ) as f:
-                total_train_examples = json.load(f)
-            with open(
-                os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
-            ) as f:
-                total_eval_examples = json.load(f)
+        hellaswag_datasets = load_dataset("hellaswag", cache_dir=data_cache_dir)
+        if args.subsample:
+            train_examples_file = os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
+            eval_examples_file = os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
+            
+            if os.path.isfile(train_examples_file) and os.path.isfile(eval_examples_file):
+                print("use cached examples")
+                with open(train_examples_file) as f:
+                    total_train_examples = json.load(f)
+                with open(eval_examples_file) as f:
+                    total_eval_examples = json.load(f)
+            else:
+                total_train_examples = random.sample([e for e in hellaswag_datasets["train"]], 3000)
+                total_eval_examples = random.sample([e for e in hellaswag_datasets["validation"]], 256)
+                
+                total_train_examples = process_hellaswag_examples(total_train_examples)
+                total_eval_examples = process_hellaswag_examples(total_eval_examples)
+                
+                with open(train_examples_file, "w") as f:
+                    json.dump(total_train_examples, f, indent=4)
+                with open(eval_examples_file, "w") as f:
+                    json.dump(total_eval_examples, f, indent=4)
         else:
-            hellaswag_datasets = load_dataset("hellaswag", cache_dir=data_cache_dir)
-            total_train_examples = [e for e in hellaswag_datasets["train"]]
-            if args.subsample:
-                total_train_examples = random.sample(total_train_examples, 3000)
-            total_train_examples = process_hellaswag_examples(total_train_examples)
-            total_eval_examples = [e for e in hellaswag_datasets["validation"]]
-            if args.subsample:
-                total_eval_examples = random.sample(total_eval_examples, 256)
-            total_eval_examples = process_hellaswag_examples(total_eval_examples)
-            with open(
-                os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
-                "w",
-            ) as f:
-                json.dump(total_train_examples, f, indent=4)
-            with open(
-                os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json"),
-                "w",
-            ) as f:
-                json.dump(total_eval_examples, f, indent=4)
+            total_train_examples = process_hellaswag_examples([e for e in hellaswag_datasets["train"]])
+            total_eval_examples = process_hellaswag_examples([e for e in hellaswag_datasets["validation"]])
         if args.debug:
             args.annotation_size = DEBUG_ANNOTATION_SIZE
             args.batch_size = DEBUG_BATCH_SIZE
@@ -556,40 +511,31 @@ def get_task(args):
         ]
         label_map = None
     elif task_name == "xsum":
-        if os.path.isfile(
-            os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
-        ) and os.path.isfile(
-            os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
-        ):
-            print("use cached examples")
-            with open(
-                os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
-            ) as f:
-                total_train_examples = json.load(f)
-            with open(
-                os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
-            ) as f:
-                total_eval_examples = json.load(f)
+        xsum_dataset = load_dataset("xsum", cache_dir=data_cache_dir)
+        if args.subsample:
+            train_examples_file = os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
+            eval_examples_file = os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
+            
+            if os.path.isfile(train_examples_file) and os.path.isfile(eval_examples_file):
+                print("use cached examples")
+                with open(train_examples_file) as f:
+                    total_train_examples = json.load(f)
+                with open(eval_examples_file) as f:
+                    total_eval_examples = json.load(f)
+            else:
+                total_train_examples = random.sample([e for e in xsum_dataset["train"]], 3000)
+                total_eval_examples = random.sample([e for e in xsum_dataset["test"]], 256)
+                
+                total_train_examples = process_xsum_examples(total_train_examples)
+                total_eval_examples = process_xsum_examples(total_eval_examples)
+                
+                with open(train_examples_file, "w") as f:
+                    json.dump(total_train_examples, f, indent=4)
+                with open(eval_examples_file, "w") as f:
+                    json.dump(total_eval_examples, f, indent=4)
         else:
-            xsum_dataset = load_dataset("xsum", cache_dir=data_cache_dir)
-            total_train_examples = [e for e in xsum_dataset["train"]]
-            if args.subsample:
-                total_train_examples = random.sample(total_train_examples, 3000)
-            total_train_examples = process_xsum_examples(total_train_examples)
-            total_eval_examples = [e for e in xsum_dataset["test"]]
-            if args.subsample:
-                total_eval_examples = random.sample(total_eval_examples, 256)
-            total_eval_examples = process_xsum_examples(total_eval_examples)
-            with open(
-                os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
-                "w",
-            ) as f:
-                json.dump(total_train_examples, f, indent=4)
-            with open(
-                os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json"),
-                "w",
-            ) as f:
-                json.dump(total_eval_examples, f, indent=4)
+            total_train_examples = process_xsum_examples([e for e in xsum_dataset["train"]])
+            total_eval_examples = process_xsum_examples([e for e in xsum_dataset["test"]])
         if args.debug:
             args.annotation_size = DEBUG_ANNOTATION_SIZE
             args.batch_size = DEBUG_BATCH_SIZE
@@ -610,35 +556,46 @@ def get_task(args):
         ]
         label_map = None
     elif task_name == "nq":
-        if os.path.isfile(
-            os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
-        ) and os.path.isfile(
-            os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
-        ):
-            print("use cached examples")
-            with open(
-                os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
-            ) as f:
-                total_train_examples = json.load(f)
-            with open(
-                os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
-            ) as f:
-                total_eval_examples = json.load(f)
-        else:
-            nq_dataset = load_dataset("natural_questions", cache_dir=data_cache_dir)
-            first_sub_sample_indices = random.sample(
-                range(len(nq_dataset["train"])), 12000
-            )
-            train_data = (
-                nq_dataset["train"].select(first_sub_sample_indices).map(format_dataset)
-            )
-            total_train_examples = train_data.remove_columns(
-                ["annotations", "document", "id"]
-            ).filter(lambda x: x["category"] != "null")
-            total_train_examples = [e for e in total_train_examples]
-            if args.subsample:
+        nq_dataset = load_dataset("natural_questions", cache_dir=data_cache_dir)
+
+        if args.subsample:
+            train_examples_file = os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json")
+            eval_examples_file = os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json")
+
+            if os.path.isfile(train_examples_file) and os.path.isfile(eval_examples_file):
+                print("use cached examples")
+                with open(train_examples_file) as f:
+                    total_train_examples = json.load(f)
+                with open(eval_examples_file) as f:
+                    total_eval_examples = json.load(f)
+            else:
+                first_sub_sample_indices = random.sample(range(len(nq_dataset["train"])), 12000)
+                train_data = nq_dataset["train"].select(first_sub_sample_indices).map(format_dataset)
+                total_train_examples = train_data.remove_columns(["annotations", "document", "id"]).filter(lambda x: x["category"] != "null")
+                total_train_examples = [e for e in total_train_examples]
                 total_train_examples = random.sample(total_train_examples, 3000)
+                total_train_examples = process_nq_examples(total_train_examples)
+
+                total_eval_examples = (
+                    nq_dataset["validation"]
+                    .map(format_dataset)
+                    .remove_columns(["annotations", "document", "id"])
+                    .filter(lambda x: x["category"] != "null")
+                )
+                total_eval_examples = [e for e in total_eval_examples]
+                total_eval_examples = random.sample(total_eval_examples, 256)
+                total_eval_examples = process_nq_examples(total_eval_examples)
+
+                with open(train_examples_file, "w") as f:
+                    json.dump(total_train_examples, f, indent=4)
+                with open(eval_examples_file, "w") as f:
+                    json.dump(total_eval_examples, f, indent=4)
+        else:
+            train_data = nq_dataset["train"].map(format_dataset)
+            total_train_examples = train_data.remove_columns(["annotations", "document", "id"]).filter(lambda x: x["category"] != "null")
+            total_train_examples = [e for e in total_train_examples]
             total_train_examples = process_nq_examples(total_train_examples)
+
             total_eval_examples = (
                 nq_dataset["validation"]
                 .map(format_dataset)
@@ -646,19 +603,8 @@ def get_task(args):
                 .filter(lambda x: x["category"] != "null")
             )
             total_eval_examples = [e for e in total_eval_examples]
-            if args.subsample:
-                total_eval_examples = random.sample(total_eval_examples, 256)
             total_eval_examples = process_nq_examples(total_eval_examples)
-            with open(
-                os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
-                "w",
-            ) as f:
-                json.dump(total_train_examples, f, indent=4)
-            with open(
-                os.path.join(args.output_dir, f"eval_examples_seed_{args.seed}.json"),
-                "w",
-            ) as f:
-                json.dump(total_eval_examples, f, indent=4)
+        
         if args.debug:
             args.annotation_size = DEBUG_ANNOTATION_SIZE
             args.batch_size = DEBUG_BATCH_SIZE

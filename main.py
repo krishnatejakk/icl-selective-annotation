@@ -34,7 +34,7 @@ parser.add_argument("--data_cache_dir", required=True, type=str)
 parser.add_argument("--output_dir", required=True, type=str)
 parser.add_argument("--model_key", type=str)
 parser.add_argument("--prompt_retrieval_method", default="similar", type=str)
-parser.add_argument("--subsample", default=True, type=bool)
+parser.add_argument("--subsample", type=bool)
 parser.add_argument("--model_name", default="EleutherAI/gpt-j-6B", type=str)
 parser.add_argument(
     "--embedding_model",
