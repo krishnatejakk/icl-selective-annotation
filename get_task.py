@@ -205,10 +205,12 @@ def get_task(args):
         else:
             mnli_datasets = load_dataset("glue", "mnli", cache_dir=data_cache_dir)
             total_train_examples = [e for e in mnli_datasets["train"]]
-            total_train_examples = random.sample(total_train_examples, 3000)
+            if args.subsample:
+                total_train_examples = random.sample(total_train_examples, 3000)
             total_train_examples = process_mnli_examples(total_train_examples)
             total_eval_examples = [e for e in mnli_datasets["validation_matched"]]
-            total_eval_examples = random.sample(total_eval_examples, 256)
+            if args.subsample:
+                total_eval_examples = random.sample(total_eval_examples, 256)
             total_eval_examples = process_mnli_examples(total_eval_examples)
             with open(
                 os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
@@ -266,7 +268,8 @@ def get_task(args):
             total_train_examples = [e for e in rte_datasets["train"]]
             total_train_examples = process_rte_examples(total_train_examples)
             total_eval_examples = [e for e in rte_datasets["validation"]]
-            total_eval_examples = random.sample(total_eval_examples, 256)
+            if args.subsample:
+                total_eval_examples = random.sample(total_eval_examples, 256)
             total_eval_examples = process_rte_examples(total_eval_examples)
             with open(
                 os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
@@ -317,10 +320,12 @@ def get_task(args):
         else:
             sst5_datasets = load_dataset("SetFit/sst5", cache_dir=data_cache_dir)
             total_train_examples = [e for e in sst5_datasets["train"]]
-            total_train_examples = random.sample(total_train_examples, 3000)
+            if args.subsample:
+                total_train_examples = random.sample(total_train_examples, 3000)
             total_train_examples = process_sst5_examples(total_train_examples)
             total_eval_examples = [e for e in sst5_datasets["test"]]
-            total_eval_examples = random.sample(total_eval_examples, 256)
+            if args.subsample:
+                total_eval_examples = random.sample(total_eval_examples, 256)
             total_eval_examples = process_sst5_examples(total_eval_examples)
             with open(
                 os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
@@ -373,10 +378,12 @@ def get_task(args):
         else:
             mrpc_datasets = load_dataset("glue", "mrpc", cache_dir=data_cache_dir)
             total_train_examples = [e for e in mrpc_datasets["train"]]
-            total_train_examples = random.sample(total_train_examples, 3000)
+            if args.subsample:
+                total_train_examples = random.sample(total_train_examples, 3000)
             total_train_examples = process_mrpc_examples(total_train_examples)
             total_eval_examples = [e for e in mrpc_datasets["validation"]]
-            total_eval_examples = random.sample(total_eval_examples, 256)
+            if args.subsample:
+                total_eval_examples = random.sample(total_eval_examples, 256)
             total_eval_examples = process_mrpc_examples(total_eval_examples)
             with open(
                 os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
@@ -430,10 +437,12 @@ def get_task(args):
                 "fancyzhx/dbpedia_14", cache_dir=data_cache_dir
             )
             total_train_examples = [e for e in dbpedia_datasets["train"]]
-            total_train_examples = random.sample(total_train_examples, 3000)
+            if args.subsample:
+                total_train_examples = random.sample(total_train_examples, 3000)
             total_train_examples = process_dbpedia_examples(total_train_examples)
             total_eval_examples = [e for e in dbpedia_datasets["test"]]
-            total_eval_examples = random.sample(total_eval_examples, 256)
+            if args.subsample:
+                total_eval_examples = random.sample(total_eval_examples, 256)
             total_eval_examples = process_dbpedia_examples(total_eval_examples)
             with open(
                 os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
@@ -499,10 +508,12 @@ def get_task(args):
         else:
             hellaswag_datasets = load_dataset("hellaswag", cache_dir=data_cache_dir)
             total_train_examples = [e for e in hellaswag_datasets["train"]]
-            total_train_examples = random.sample(total_train_examples, 3000)
+            if args.subsample:
+                total_train_examples = random.sample(total_train_examples, 3000)
             total_train_examples = process_hellaswag_examples(total_train_examples)
             total_eval_examples = [e for e in hellaswag_datasets["validation"]]
-            total_eval_examples = random.sample(total_eval_examples, 256)
+            if args.subsample:
+                total_eval_examples = random.sample(total_eval_examples, 256)
             total_eval_examples = process_hellaswag_examples(total_eval_examples)
             with open(
                 os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
@@ -562,10 +573,12 @@ def get_task(args):
         else:
             xsum_dataset = load_dataset("xsum", cache_dir=data_cache_dir)
             total_train_examples = [e for e in xsum_dataset["train"]]
-            total_train_examples = random.sample(total_train_examples, 3000)
+            if args.subsample:
+                total_train_examples = random.sample(total_train_examples, 3000)
             total_train_examples = process_xsum_examples(total_train_examples)
             total_eval_examples = [e for e in xsum_dataset["test"]]
-            total_eval_examples = random.sample(total_eval_examples, 256)
+            if args.subsample:
+                total_eval_examples = random.sample(total_eval_examples, 256)
             total_eval_examples = process_xsum_examples(total_eval_examples)
             with open(
                 os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
@@ -623,7 +636,8 @@ def get_task(args):
                 ["annotations", "document", "id"]
             ).filter(lambda x: x["category"] != "null")
             total_train_examples = [e for e in total_train_examples]
-            total_train_examples = random.sample(total_train_examples, 3000)
+            if args.subsample:
+                total_train_examples = random.sample(total_train_examples, 3000)
             total_train_examples = process_nq_examples(total_train_examples)
             total_eval_examples = (
                 nq_dataset["validation"]
@@ -632,7 +646,8 @@ def get_task(args):
                 .filter(lambda x: x["category"] != "null")
             )
             total_eval_examples = [e for e in total_eval_examples]
-            total_eval_examples = random.sample(total_eval_examples, 256)
+            if args.subsample:
+                total_eval_examples = random.sample(total_eval_examples, 256)
             total_eval_examples = process_nq_examples(total_eval_examples)
             with open(
                 os.path.join(args.output_dir, f"train_examples_seed_{args.seed}.json"),
