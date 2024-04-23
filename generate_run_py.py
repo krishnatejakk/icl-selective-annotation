@@ -10,18 +10,18 @@ from cvar_pyutils.ccc import submit_dependant_jobs
 
 INVOKE_COMMAND = """
 submit_dependant_jobs(
-    number_of_rolling_jobs=78,
+    number_of_rolling_jobs={n_jobs},
     command_to_run=run_commands,
     machine_type="x86",
     conda_env="cords",
-    out_file="out.txt",
-    err_file="err.txt",
+    out_file="mistral_out.txt",
+    err_file="mistral_err.txt",
     queue="nonstandard",
     time="12h",
-    num_cores=4,
+    num_cores=12,
     num_gpus=1,
-    mem="120g",
-    gpu_type="a100_40gb",
+    mem="200g",
+    gpu_type="a100_80gb",
     mail_log_file_when_done="krishnateja.k@ibm.com",
     mail_notification_on_start="krishnateja.k@ibm.com",
 )
@@ -38,7 +38,7 @@ def main(model_name):
         file.write("run_commands = " + json.dumps(all_commands, indent=4))
 
         file.write("\n")
-        file.write(INVOKE_COMMAND)
+        file.write(INVOKE_COMMAND.format(n_jobs=len(all_commands)))
 
     subprocess.Popen(["black", "run.py"]).communicate()
 

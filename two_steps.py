@@ -15,7 +15,7 @@ from constants import (
     QUERYLESS_SUBMODLIB_FUNCTIONS,
 )
 from utils import get_accepted_kwargs
-from MetaICL.utils.compute_similarity_kernel_numpy import compute_pairwise_similarities
+from MetaICL.utils.compute_similarity_kernel_torch import compute_pairwise_similarities
 
 
 def prompt_retrieval(

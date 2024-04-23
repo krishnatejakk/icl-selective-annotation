@@ -6,3 +6,4 @@ outputs/*
 models/*
 .hidden.transformers/*
 *_summary.csv
+*.txt*

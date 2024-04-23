@@ -213,13 +213,21 @@ class MetaICLModel(object):
             dataloader = tqdm(dataloader)
         losses = []
         for batch in dataloader:
-            input_ids=batch[0].cuda()
-            attention_mask=batch[1].cuda()
-            token_type_ids=batch[2].cuda()
+            if torch.cuda.is_available():
+                input_ids=batch[0].cuda()
+                attention_mask=batch[1].cuda()
+                token_type_ids=batch[2].cuda()
+            else:
+                input_ids=batch[0]
+                attention_mask=batch[1]
+                token_type_ids=batch[2]
             if len(batch)==3:
                 labels=None
             else:
-                labels=batch[3].cuda()
+                if torch.cuda.is_available():
+                    labels=batch[3].cuda()
+                else:
+                    labels=batch[3]
             with torch.no_grad():
                 loss = self.run_model(input_ids, attention_mask, token_type_ids, labels=labels)
             losses += loss.cpu().detach().numpy().tolist()

@@ -102,12 +102,23 @@ if __name__ == "__main__":
             tokenizer_gpt = None
             model_keys = args.model_key.split("##")
         else:
+            if args.model_name == "EleutherAI/gpt-j-6B":
+                tokenizer = None
+            else:
+                tokenizer = AutoTokenizer.from_pretrained(
+                    args.model_name, cache_dir=args.model_cache_dir
+                )
             data_module = MetaICLData(
-                method="direct", max_length=1024, max_length_per_example=256
+                method="direct", 
+                tokenizer = tokenizer,
+                max_length=1024, 
+                max_length_per_example=256
             )
             inference_model = MetaICLModel(args=args)
             inference_model.load()
-            inference_model.cuda()
+            # Check if GPU is available
+            if torch.cuda.is_available():
+                inference_model.cuda()
             inference_model.eval()
             tokenizer_gpt = None
             return_string = False
