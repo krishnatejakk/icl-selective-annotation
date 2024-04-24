@@ -351,7 +351,12 @@ class MetaICLData(object):
         #     print(i,"options" not in dp)
         # print("end debug message\n\n\n")
         if options is not None:
-            assert np.all([dp["output"] in options for dp in _train_data])
+            for dp in _train_data:
+                if "</s>" in dp["output"]:
+                    tmp = dp["output"].replace("</s>", "")
+                    assert tmp in options, (tmp, options)
+                else:
+                    assert dp["output"] in options, (dp["output"], options)
             for i, dp in enumerate(_test_data):
                 # assert "options" not in dp
                 assert type(dp)==str

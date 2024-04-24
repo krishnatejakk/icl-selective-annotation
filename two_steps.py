@@ -508,7 +508,7 @@ def selective_annotation(args, **kwargs):
             metric="cosine",
             scaling="additive",
         )
-        sijs = sijs.cpu().numpy()
+        sijs = sijs.numpy()
 
         if args.selective_annotation_method == "GraphCutFunction":
             similarity_kernel_name = "ggsijs"

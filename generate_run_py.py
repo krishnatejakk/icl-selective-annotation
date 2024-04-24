@@ -20,8 +20,8 @@ submit_dependant_jobs(
     time="12h",
     num_cores=12,
     num_gpus=1,
-    mem="120g",
-    gpu_type="a100_40gb",
+    mem="200g",
+    gpu_type="a100_80gb",
     mail_log_file_when_done="krishnateja.k@ibm.com",
     mail_notification_on_start="krishnateja.k@ibm.com",
 )

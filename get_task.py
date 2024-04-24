@@ -220,12 +220,18 @@ def get_task(args):
             total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
             total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
-        def format_example(example, label_map, **kwargs):
-            return (
-                f"{example['premise']}. Based on that information, is the claim {example['hypothesis']} \"True\", "
-                f'"False", or "Inconclusive"?\nanswer:',
-                f"{label_map[example['label']]}",
-            )
+        if args.model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+            def format_example(example, label_map, **kwargs):
+                instruction = f"[INST] {example['premise']}. Based on that information, is the claim {example['hypothesis']} \"True\", " \
+                            f'"False", or "Inconclusive"? [/INST]'
+                label = f"{label_map[example['label']]}</s>"
+                return (instruction, label)
+        else:
+            def format_example(example, label_map, **kwargs):
+                instruction = f"{example['premise']}. Based on that information, is the claim {example['hypothesis']} \"True\", " \
+                            f'"False", or "Inconclusive"?\\nanswer:'
+                label = f"{label_map[example['label']]}"
+                return (instruction, label)
 
         all_train_text_to_encode = [
             '{}. Based on that information, is the claim {} "True", "False", or "Inconclusive"?'.format(
@@ -279,11 +285,16 @@ def get_task(args):
             total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
             total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
-        def format_example(example, label_map, **kwargs):
-            return (
-                f"{example['sentence1']}.\nquestion: {example['sentence2']}. True or False?\nanswer:",
-                f"{label_map[example['label']]}",
-            )
+        if args.model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+            def format_example(example, label_map, **kwargs):
+                instruction = f"[INST] {example['sentence1']}.\\nquestion: {example['sentence2']}. True or False? [/INST]"
+                label = f"{label_map[example['label']]}</s>"
+                return (instruction, label)
+        else:
+            def format_example(example, label_map, **kwargs):
+                instruction = f"{example['sentence1']}.\\nquestion: {example['sentence2']}. True or False?\\nanswer:"
+                label = f"{label_map[example['label']]}"
+                return (instruction, label)
 
         all_train_text_to_encode = [
             "{}.\nquestion: {}".format(raw_item["sentence1"], raw_item["sentence2"])
@@ -326,11 +337,16 @@ def get_task(args):
             total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
             total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
-        def format_example(example, label_map, **kwargs):
-            return (
-                f"How do you feel about the following sentence?\n{example['text']}\nanswer:",
-                f"{label_map[example['label']]}",
-            )
+        if args.model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+            def format_example(example, label_map, **kwargs):
+                instruction = f"[INST] How do you feel about the following sentence?\\n{example['text']} [/INST]"
+                label = f"{label_map[example['label']]}</s>"
+                return (instruction, label)
+        else:
+            def format_example(example, label_map, **kwargs):
+                instruction = f"How do you feel about the following sentence?\\n{example['text']}\\nanswer:"
+                label = f"{label_map[example['label']]}"
+                return (instruction, label)
 
         all_train_text_to_encode = [
             raw_item["text"] for raw_item in total_train_examples
@@ -376,13 +392,19 @@ def get_task(args):
             total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
             total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
-        def format_example(example, label_map, **kwargs):
-            return (
-                f"Are the following two sentences 'equivalent' or 'not equivalent'?\n"
-                f"{example['sentence1']}.\n{example['sentence2']}.\nanswer:",
-                f"{label_map[example['label']]}",
-            )
-
+        if args.model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+            def format_example(example, label_map, **kwargs):
+                instruction = f"[INST] Are the following two sentences 'equivalent' or 'not equivalent'?\\n" \
+                            f"{example['sentence1']}.\\n{example['sentence2']}. [/INST]"
+                label = f"{label_map[example['label']]}</s>"
+                return (instruction, label)
+        else:
+            def format_example(example, label_map, **kwargs):
+                instruction = f"Are the following two sentences 'equivalent' or 'not equivalent'?\\n" \
+                            f"{example['sentence1']}.\\n{example['sentence2']}.\\nanswer:"
+                label = f"{label_map[example['label']]}"
+                return (instruction, label)
+            
         all_train_text_to_encode = [
             "{}.\n{}".format(raw_item["sentence1"], raw_item["sentence2"])
             for raw_item in total_train_examples
@@ -424,11 +446,16 @@ def get_task(args):
             total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
             total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
-        def format_example(example, label_map, **kwargs):
-            return (
-                f"title: {example['title']}; content: {example['content']}",
-                f"{label_map[example['label']]}",
-            )
+        if args.model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+            def format_example(example, label_map, **kwargs):
+                instruction = f"[INST] title: {example['title']}; content: {example['content']} [/INST]"
+                label = f"{label_map[example['label']]}</s>"
+                return (instruction, label)
+        else:
+            def format_example(example, label_map, **kwargs):
+                instruction = f"title: {example['title']}; content: {example['content']}"
+                label = f"{label_map[example['label']]}"
+                return (instruction, label)
 
         all_train_text_to_encode = [
             "title: {} ; content: {}".format(raw_item["title"], raw_item["content"])
@@ -486,12 +513,18 @@ def get_task(args):
             total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
             total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
-        def format_example(example, label_map, **kwargs):
-            return (
-                f"The topic is {example['activity_label']}. {example['ctx_a']} "
-                f"{example['ctx_b']} ",
-                f"{example['endings'][example['label']]}",
-            )
+        if args.model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+            def format_example(example, label_map, **kwargs):
+                instruction = f"[INST] The topic is {example['activity_label']}. {example['ctx_a']} " \
+                            f"{example['ctx_b']} [/INST]"
+                label = f"{example['endings'][example['label']]}</s>"
+                return (instruction, label)
+        else:
+            def format_example(example, label_map, **kwargs):
+                instruction = f"The topic is {example['activity_label']}. {example['ctx_a']} " \
+                            f"{example['ctx_b']} "
+                label = f"{example['endings'][example['label']]}"
+                return (instruction, label)
 
         all_train_text_to_encode = [
             f"The topic is {raw_item['activity_label']}. {raw_item['ctx_a']} {raw_item['ctx_b']} | "
@@ -542,11 +575,16 @@ def get_task(args):
             total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
             total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
-        def format_example(example, label_map, **kwargs):
-            return (
-                f"write a short summary:\n{example['document']}\nTL;DR:",
-                f"{example['summary']}",
-            )
+        if args.model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+            def format_example(example, label_map, **kwargs):
+                instruction = f"[INST] write a short summary:\\n{example['document']} [/INST]"
+                label = f"{example['summary']}</s>"
+                return (instruction, label)
+        else:
+            def format_example(example, label_map, **kwargs):
+                instruction = f"write a short summary:\\n{example['document']}\\nTL;DR:"
+                label = f"{example['summary']}"
+                return (instruction, label)
 
         all_train_text_to_encode = [
             raw_item["document"] for raw_item in total_train_examples
@@ -611,19 +649,29 @@ def get_task(args):
             total_train_examples = total_train_examples[:DEBUG_TRAIN_SAMPLES]
             total_eval_examples = total_eval_examples[:DEBUG_EVAL_SAMPLES]
 
-        def format_example(example, label_map, **kwargs):
-            if example["category"] in ["yes", "no"]:
-                return (
-                    f"Write an answer: {example['question']}\nclass",
-                    f"{example['category']}",
-                )
-            assert example["category"] == "other", example["category"]
-            assert len(example["short_targets"]) > 0, f"{example['short_targets']}"
-            return (
-                f"Write an answer: {example['question']}\n{example['category']} ",
-                f"{example['short_targets'][0]}",
-            )
-
+        if args.model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+            def format_example(example, label_map, **kwargs):
+                if example["category"] in ["yes", "no"]:
+                    instruction = f"[INST] Write an answer: {example['question']} [/INST]"
+                    label = f"{example['category']}</s>"
+                    return (instruction, label)
+                assert example["category"] == "other", example["category"]
+                assert len(example["short_targets"]) > 0, f"{example['short_targets']}"
+                instruction = f"[INST] Write an answer: {example['question']} [/INST]"
+                label = f"{example['short_targets'][0]}</s>"
+                return (instruction, label)
+        else:
+            def format_example(example, label_map, **kwargs):
+                if example["category"] in ["yes", "no"]:
+                    instruction = f"Write an answer: {example['question']}\\nclass"
+                    label = f"{example['category']}"
+                    return (instruction, label)
+                assert example["category"] == "other", example["category"]
+                assert len(example["short_targets"]) > 0, f"{example['short_targets']}"
+                instruction = f"Write an answer: {example['question']}\\n{example['category']} "
+                label = f"{example['short_targets'][0]}"
+                return (instruction, label)
+            
         all_train_text_to_encode = [
             raw_item["question"] for raw_item in total_train_examples
         ]

@@ -205,6 +205,8 @@ if __name__ == "__main__":
                         with open(os.path.join(prompt_cache_dir, file)) as f:
                             one_test_example = json.load(f)
                         cur_train_data = one_test_example[1]
+                        if args.model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+                            cur_train_data[0]["input"] = "<s> " + cur_train_data[0]["input"]
                         cur_input = {
                             "input": format_example(
                                 one_test_example[2], label_map=label_map, args=args
@@ -259,8 +261,8 @@ if __name__ == "__main__":
                         cur_train_data = one_test_example[1]
                         for idx in range(len(cur_train_data)):
                             cur_train_data[idx]["options"] = all_labels
-                        for idx in range(len(cur_train_data)):
-                            cur_train_data[idx]["options"] = all_labels
+                        if args.model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+                            cur_train_data[0]["input"] = "<s> " + cur_train_data[0]["input"]
                         cur_input = format_example(
                             one_test_example[2], label_map=label_map, args=args
                         )[0]

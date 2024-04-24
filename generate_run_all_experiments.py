@@ -9,7 +9,7 @@ def generate_commands(model_name, subsample):
             command = f"python main.py --task_name {task} --selective_annotation_method {method} "
             command += f"--model_cache_dir models --data_cache_dir datasets "
             if subsample:
-                command += f"--output_dir outputs/{escaped_model_name}/{task}_subsampled/{method} --model_name {model_name}  --subsample"
+                command += f"--output_dir outputs/{escaped_model_name}/{task}_subsampled/{method} --model_name {model_name}  --subsample True"
             else:
                 command += f"--output_dir outputs/{escaped_model_name}/{task}_full/{method} --model_name {model_name}"
             yield command
