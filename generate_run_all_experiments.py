@@ -1,28 +1,28 @@
 import argparse
-from constants import TASK_NAMES#, SELECTIVE_ANNOTATION_METHODS
+from constants import TASK_NAMES, QUERYLESS_SUBMODLIB_FUNCTIONS#, SELECTIVE_ANNOTATION_METHODS
 
 SELECTIVE_ANNOTATION_METHODS = [
+    # *QUERYLESS_SUBMODLIB_FUNCTIONS,
+    # "random",
+    # "diversity",
     "ideal",
-    "auto_ideal",
-    #"random",
-    #"diversity",
+    #"auto_ideal",
     "fast_votek",
-    #"mfl",
     "votek",
     "least_confidence",
-    #*QUERYFULL_SUBMODLIB_FUNCTIONS,
 ]
 
-def generate_commands(model_name, subsample):
+def generate_commands(model_name, embedding_model, subsample):
     escaped_model_name = model_name.split("/")[-1]
+    embedding_model_name = embedding_model.split("/")[-1]
     for task in TASK_NAMES:
         for method in SELECTIVE_ANNOTATION_METHODS:
             command = f"python main.py --task_name {task} --selective_annotation_method {method} "
             command += f"--model_cache_dir models --data_cache_dir datasets "
             if subsample:
-                command += f"--output_dir outputs/{escaped_model_name}/{task}/{method} --model_name {model_name}"
+                command += f"--output_dir outputs/{escaped_model_name}/{embedding_model_name}/{task}/{method} --model_name {model_name} --embedding_model {embedding_model}"
             else:
-                command += f"--output_dir outputs/{escaped_model_name}/{task}_full/{method} --model_name {model_name} --upsample"
+                command += f"--output_dir outputs/{escaped_model_name}/{embedding_model_name}/{task}_full/{method} --model_name {model_name} --embedding_model {embedding_model} --upsample"
             yield command
 
 

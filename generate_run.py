@@ -29,11 +29,11 @@ submit_dependant_jobs(
 """
 
 
-def main(model_name, subsample):
+def main(model_name, embedding_model, subsample):
     with open("run.py", "w") as file:
         file.write(IMPORT_COMMAND)
 
-        all_commands = list(generate_commands(model_name, subsample))
+        all_commands = list(generate_commands(model_name, embedding_model, subsample))
         all_commands.append("python exelify_results.py")
 
         file.write("run_commands = " + json.dumps(all_commands, indent=4))
@@ -53,8 +53,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name",
         type=str,
-        default='mistralai/Mistral-7B-v0.3',
+        default="EleutherAI/gpt-j-6B",
         help="Model name to use for all experiments.",
+    )
+    parser.add_argument(
+    "--embedding_model",
+    # default="sentence-transformers/all-mpnet-base-v2",
+    default="BAAI/bge-large-en-v1.5",
+    type=str,
     )
     parser.add_argument(
         "--subsample",
@@ -65,4 +71,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
 
-    main(args.model_name, args.subsample)
+    main(args.model_name, args.embedding_model, args.subsample)

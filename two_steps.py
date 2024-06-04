@@ -638,13 +638,20 @@ def selective_annotation(args, **kwargs):
         return selected_node, diffusion_list
     elif args.selective_annotation_method in QUERYLESS_SUBMODLIB_FUNCTIONS:
         FunctionClass = getattr(submodlib.functions, args.selective_annotation_method)
-
-        sijs = compute_pairwise_similarities(
-            tensor1=kwargs["embeddings"],
-            sparse=False,
-            metric="dot",
-            scaling="min-max",
-        )
+        if args.embedding_model == "sentence-transformers/all-mpnet-base-v2":
+            sijs = compute_pairwise_similarities(
+                tensor1=kwargs["embeddings"],
+                sparse=False,
+                metric="cosine",
+                scaling="additive",
+            )
+        else:
+            sijs = compute_pairwise_similarities(
+                tensor1=kwargs["embeddings"],
+                sparse=False,
+                metric="dot",
+                scaling="min-max",
+            )
         
         sijs = sijs.numpy()
 

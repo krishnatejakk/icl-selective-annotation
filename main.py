@@ -43,7 +43,7 @@ parser.add_argument("--model_name", default='meta-llama/Meta-Llama-3-8B-Instruct
 #"meta-llama/Meta-Llama-3-8B-Instruct"
 parser.add_argument(
     "--embedding_model",
-    #default="sentence-transformers/paraphrase-mpnet-base-v2",
+    # default="sentence-transformers/all-mpnet-base-v2",
     default="BAAI/bge-large-en-v1.5",
     type=str,
 )
