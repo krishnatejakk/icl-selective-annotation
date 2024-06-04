@@ -12,7 +12,7 @@ import numpy as np
 import pickle as pkl
 import math
 import torch
-
+from copy import deepcopy
 from collections import defaultdict
 from functools import partial
 from multiprocessing import Pool
@@ -113,54 +113,87 @@ class MetaICLData(object):
 
         return np.mean(f1s)
 
-    def _prepro_each_datapoint(self, dp, is_first=True, is_training=False, for_demonstrations=False,
-                               add_newlines=True):
-        dp = dp.copy()
-        if add_newlines:
+    def _prepro_each_datapoint(self, dp, is_first=True, is_training=False, 
+                               for_demonstrations=False,
+                               add_newlines=True, model_name="EleutherAI/gpt-j-6B"):
+        
+        dp = deepcopy(dp)
+        if model_name == "mistralai/Mistral-7B-Instruct-v0.2":
             no_label = np.all([option=="" for option in dp["options"]])
             no_input = dp["input"]==""
-            if self.method=="direct":
-                if not is_first:
-                    if no_input:
-                        dp["input"] = "\n\n" + dp["input"]
-                    else:
-                        dp["input"] = "\n\n\n" + dp["input"]
-                if not no_label:
-                    dp["output"] = "\n" + dp["output"]
-                    if "options" in dp:
-                        dp["options"] = ["\n" + opt for opt in dp["options"]]
-            elif self.method=="channel":
-                if not is_first:
-                    dp["output"] = "\n\n\n" + dp["output"]
-                    if "options" in dp:
-                        dp["options"] = ["\n\n\n" + opt for opt in dp["options"]]
-                if not no_input:
-                    if not no_label:
-                        dp["input"] = "\n" + dp["input"]
-            else:
-                raise NotImplementedError()
-        else:
             if not is_first:
+                if not no_input:
+                    dp["input"] = "[INST]" + dp["input"] + "[/INST]"
+            else:
+                if not no_input:
+                    dp["input"] = "<s>[INST]" + dp["input"] + "[/INST]"
+                else:
+                    dp["input"] = "<s>"
+        elif model_name == "meta-llama/Meta-Llama-3-8B-Instruct":
+            no_label = np.all([option=="" for option in dp["options"]])
+            no_input = dp["input"]==""
+            if not no_input:
+                if is_first:
+                    dp["input"] = "<|begin_of_text|><|start_header_id|>user<|end_header_id|>" + dp["input"] + "<|eot_id|>"
+                else:
+                    dp["input"] = "<|start_header_id|>user<|end_header_id|>" + dp["input"] + "<|eot_id|>"
+            else:
+                if is_first:
+                    dp["input"] = "<|begin_of_text|><|start_header_id|>user<|end_header_id|><|eot_id|>"
+                else:
+                    dp["input"] = "<|start_header_id|>user<|end_header_id|><|eot_id|>"
+        else:
+            if add_newlines:
+                no_label = np.all([option=="" for option in dp["options"]])
+                no_input = dp["input"]==""
                 if self.method=="direct":
-                    dp["input"] = " " + dp["input"]
+                    if not is_first:
+                        if no_input:
+                            dp["input"] = "\n\n" + dp["input"]
+                        else:
+                            dp["input"] = "\n\n\n" + dp["input"]
+                    if not no_label:
+                        dp["output"] = "\n" + dp["output"]
+                        if "options" in dp:
+                            dp["options"] = ["\n" + opt for opt in dp["options"]]
                 elif self.method=="channel":
-                    dp["output"] = " " + dp["output"]
-                    if "options" in dp:
-                        dp["options"] = [" "+opt for opt in dp["options"]]
+                    if not is_first:
+                        dp["output"] = "\n\n\n" + dp["output"]
+                        if "options" in dp:
+                            dp["options"] = ["\n\n\n" + opt for opt in dp["options"]]
+                    if not no_input:
+                        if not no_label:
+                            dp["input"] = "\n" + dp["input"]
                 else:
                     raise NotImplementedError()
-            if self.method=="direct":
-                dp["output"] = " " + dp["output"]
-                if "options" in dp:
-                    dp["options"] = [" " + opt for opt in dp["options"]]
-            elif self.method=="channel":
-                dp["input"] = " " + dp["input"]
             else:
-                raise NotImplementedError()
+                if not is_first:
+                    if self.method=="direct":
+                        dp["input"] = " " + dp["input"]
+                    elif self.method=="channel":
+                        dp["output"] = " " + dp["output"]
+                        if "options" in dp:
+                            dp["options"] = [" "+opt for opt in dp["options"]]
+                    else:
+                        raise NotImplementedError()
+                if self.method=="direct":
+                    dp["output"] = " " + dp["output"]
+                    if "options" in dp:
+                        dp["options"] = [" " + opt for opt in dp["options"]]
+                elif self.method=="channel":
+                    dp["input"] = " " + dp["input"]
+                else:
+                    raise NotImplementedError()
+        
 
         input_tokens = self.tokenizer(dp["input"])["input_ids"]
 
         if is_training or for_demonstrations:
+            if model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+                dp["output"] = dp["output"] + "</s>"
+            elif model_name == "meta-llama/Meta-Llama-3-8B-Instruct":
+                dp["output"] = "<|start_header_id|>assistant<|end_header_id|>" + dp["output"] + "<|eot_id|>"
+
             output_tokens = self.tokenizer(dp["output"])["input_ids"]
 
             if "task" in dp:
@@ -188,6 +221,17 @@ class MetaICLData(object):
         else:
             assert len(dp["options"])>=2, dp
             assert dp["output"] in dp["options"]
+            if model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+                dp["output"] = dp["output"] + "</s>"
+            elif model_name == "meta-llama/Meta-Llama-3-8B-Instruct":
+                dp["output"] = "<|start_header_id|>assistant<|end_header_id|>" + dp["output"] + "<|eot_id|>" + "<|end_of_text|>"
+
+            if model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+                for i, option in enumerate(dp["options"]):
+                    dp["options"][i] = option + "</s>"
+            elif model_name == "meta-llama/Meta-Llama-3-8B-Instruct":
+                for i, option in enumerate(dp["options"]):
+                    dp["options"][i] = "<|start_header_id|>assistant<|end_header_id|>" + option + "<|eot_id|>" + "<|end_of_text|>"
             option_tokens = [self.tokenizer(option)["input_ids"] for option in dp["options"]]
             option_length = np.max([len(option) for option in option_tokens])
 
@@ -196,6 +240,7 @@ class MetaICLData(object):
 
             input_tokens = [input_tokens for _ in option_tokens]
             output_tokens = option_tokens
+
             option_tokens = [dp["options"].index(dp["output"])]
 
             if self.method=="direct":
@@ -343,7 +388,7 @@ class MetaICLData(object):
                     token_type_ids=torch.LongTensor(token_type_ids))
 
     def tensorize(self, _train_data, _test_data, options=None,
-                  add_newlines=True):
+                  add_newlines=True, model_name="EleutherAI/gpt-j-6B"):
 
         # print("start debug message")
         # print(options is not None)
@@ -352,11 +397,7 @@ class MetaICLData(object):
         # print("end debug message\n\n\n")
         if options is not None:
             for dp in _train_data:
-                if "</s>" in dp["output"]:
-                    tmp = dp["output"].replace("</s>", "")
-                    assert tmp in options, (tmp, options)
-                else:
-                    assert dp["output"] in options, (dp["output"], options)
+                assert dp["output"] in options, (dp["output"], options)
             for i, dp in enumerate(_test_data):
                 # assert "options" not in dp
                 assert type(dp)==str
@@ -389,12 +430,14 @@ class MetaICLData(object):
             for i, dp in enumerate(train_data):
                 input_, output_ = self._prepro_each_datapoint(
                     dp, is_first=i==0, for_demonstrations=True,
-                    add_newlines=add_newlines)
+                    add_newlines=add_newlines, 
+                    model_name=model_name)
                 demonstrations += input_ + output_
 
         for dp_idx, dp in enumerate(test_data):
             inputs, outputs, answer = self._prepro_each_datapoint(
-                dp, is_first=not self.use_demonstrations, add_newlines=add_newlines)
+                dp, is_first=not self.use_demonstrations, add_newlines=add_newlines,
+                model_name=model_name)
 
             indices = [[i] for i in range(len(input_ids), len(input_ids)+len(inputs))]
 

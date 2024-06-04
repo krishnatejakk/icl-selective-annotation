@@ -34,11 +34,17 @@ parser.add_argument("--data_cache_dir", required=True, type=str)
 parser.add_argument("--output_dir", required=True, type=str)
 parser.add_argument("--model_key", type=str)
 parser.add_argument("--prompt_retrieval_method", default="similar", type=str)
-parser.add_argument("--subsample", type=bool)
-parser.add_argument("--model_name", default="EleutherAI/gpt-j-6B", type=str)
+parser.add_argument("--upsample", action="store_true")
+parser.add_argument("--model_name", default='meta-llama/Meta-Llama-3-8B-Instruct', type=str)
+#'EleutherAI/gpt-j-6B'
+#'mistralai/Mistral-7B-v0.3'
+#'meta-llama/Meta-Llama-3-8B'
+#"mistralai/Mistral-7B-Instruct-v0.2"
+#"meta-llama/Meta-Llama-3-8B-Instruct"
 parser.add_argument(
     "--embedding_model",
-    default="sentence-transformers/paraphrase-mpnet-base-v2",
+    #default="sentence-transformers/paraphrase-mpnet-base-v2",
+    default="BAAI/bge-large-en-v1.5",
     type=str,
 )
 parser.add_argument("--annotation_size", default=100, type=int)
@@ -46,6 +52,7 @@ parser.add_argument("--seed", default=0, type=int)
 parser.add_argument("--batch_size", default=10, type=int)
 parser.add_argument("--debug", action="store_true")
 args = parser.parse_args()
+args.subsample = not args.upsample
 
 
 def set_seed(seed: int):
@@ -103,18 +110,28 @@ if __name__ == "__main__":
             tokenizer_gpt = None
             model_keys = args.model_key.split("##")
         else:
-            if args.model_name == "EleutherAI/gpt-j-6B":
+            if args.model_name in ["EleutherAI/gpt-j-6B", "EleutherAI/gpt-neo-125m"]:
                 tokenizer = None
             else:
                 tokenizer = AutoTokenizer.from_pretrained(
                     args.model_name, cache_dir=args.model_cache_dir
                 )
-            data_module = MetaICLData(
-                method="direct", 
-                tokenizer = tokenizer,
-                max_length=1024, 
-                max_length_per_example=256
-            )
+            
+            if args.model_name in ["EleutherAI/gpt-j-6B", "EleutherAI/gpt-neo-125m"]:
+                data_module = MetaICLData(
+                    method="direct", 
+                    tokenizer = None,
+                    max_length=1024, 
+                    max_length_per_example=256
+                )
+            else:
+                data_module = MetaICLData(
+                    method="direct", 
+                    tokenizer = tokenizer,
+                    max_length=4096, 
+                    max_length_per_example=512
+                )
+                
             inference_model = MetaICLModel(args=args)
             inference_model.load()
             # Check if GPU is available
@@ -205,8 +222,6 @@ if __name__ == "__main__":
                         with open(os.path.join(prompt_cache_dir, file)) as f:
                             one_test_example = json.load(f)
                         cur_train_data = one_test_example[1]
-                        if args.model_name == "mistralai/Mistral-7B-Instruct-v0.2":
-                            cur_train_data[0]["input"] = "<s> " + cur_train_data[0]["input"]
                         cur_input = {
                             "input": format_example(
                                 one_test_example[2], label_map=label_map, args=args
@@ -214,8 +229,13 @@ if __name__ == "__main__":
                             "options": one_test_example[2]["endings"],
                         }
                         data_module.k = len(cur_train_data)
-                        data_module.tensorize(cur_train_data, [cur_input])
+                        data_module.tensorize(cur_train_data, [cur_input], model_name=args.model_name)
                         prediction = inference_model.do_predict(data_module)[0]
+                        if args.model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+                            prediction = prediction.replace("</s>", "")
+                        elif args.model_name == "meta-llama/Meta-Llama-3-8B-Instruct":
+                            prediction = prediction.replace("<|start_header_id|>assistant<|end_header_id|>", "")
+                            prediction = prediction.replace("<|eot_id|>" + "<|end_of_text|>", "")
                         assert prediction in one_test_example[2]["endings"]
                         with open(f"{output_dir}/{file}", "w") as f:
                             json.dump(
@@ -261,16 +281,19 @@ if __name__ == "__main__":
                         cur_train_data = one_test_example[1]
                         for idx in range(len(cur_train_data)):
                             cur_train_data[idx]["options"] = all_labels
-                        if args.model_name == "mistralai/Mistral-7B-Instruct-v0.2":
-                            cur_train_data[0]["input"] = "<s> " + cur_train_data[0]["input"]
                         cur_input = format_example(
                             one_test_example[2], label_map=label_map, args=args
                         )[0]
                         data_module.k = len(cur_train_data)
                         data_module.tensorize(
-                            cur_train_data, [cur_input], options=all_labels
+                            cur_train_data, [cur_input], options=all_labels, model_name=args.model_name
                         )
                         prediction = inference_model.do_predict(data_module)[0]
+                        if args.model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+                            prediction = prediction.replace("</s>", "")
+                        elif args.model_name == "meta-llama/Meta-Llama-3-8B-Instruct":
+                            prediction = prediction.replace("<|start_header_id|>assistant<|end_header_id|>", "")
+                            prediction = prediction.replace("<|eot_id|>" + "<|end_of_text|>", "")
                         with open(os.path.join(output_dir, file), "w") as f:
                             json.dump([prediction, one_test_example[2]["label"]], f)
                         preds.append(label_to_digit[prediction])

@@ -16,7 +16,8 @@ from constants import (
 )
 from utils import get_accepted_kwargs
 from MetaICL.utils.compute_similarity_kernel_torch import compute_pairwise_similarities
-
+import networkx as nx
+from copy import deepcopy
 
 def prompt_retrieval(
     train_embs,
@@ -197,6 +198,137 @@ def fast_votek(embeddings, select_num, k, vote_file=None):
             selected_times[idx_support] += 1
     return selected_indices
 
+def ic_diffusion_model(G, Seed, iter=10):
+    count = 0
+    for i in range(iter):
+        UsedNodes = deepcopy(Seed)
+        ActivatedNodes = deepcopy(Seed)
+        tempSeed = deepcopy(Seed)
+        CurrentActivatedNodes = []
+        while tempSeed:
+            for v in tempSeed:
+                for w in G.successors(v):
+                    if w not in ActivatedNodes:
+                        if random.random() < G[v][w]["weight"]:
+                            CurrentActivatedNodes.append(w)
+                        UsedNodes.append(w)
+            tempSeed = CurrentActivatedNodes
+            ActivatedNodes.extend(CurrentActivatedNodes)
+            CurrentActivatedNodes = []
+        count += len(ActivatedNodes)
+    return count / iter
+
+def infmax(embeddings, select_num, k = 10, rand_iter=10): 
+    n = len(embeddings) 
+    graph = nx.DiGraph()
+    bar = tqdm(range(n),desc=f'construct graph')
+    for i in range(n):
+        cur_emb = embeddings[i].reshape(1, -1)
+        cur_scores = np.sum(cosine_similarity(embeddings, cur_emb), axis=1) 
+        sorted_indices = np.argsort(cur_scores).tolist()[-k-1:-1]
+        sum_weight = cur_scores[sorted_indices].sum()
+        for idx in sorted_indices:
+            if idx!=i:
+                graph.add_edge(i, idx, weight = cur_scores[idx]/sum_weight)
+        bar.update(1)
+    
+    selected_node = []
+    out_degrees = graph.out_degree()
+    max_out_degree_node = max(out_degrees, key=lambda x: x[1])
+    initial_point = max_out_degree_node[0]
+    selected_node.append(initial_point)
+    bar = tqdm(select_num-1,desc=f'vote')
+    for i in range(select_num-1):
+        max_influence = 0 
+        best_node = None
+        for i, node in enumerate(graph.nodes()):
+            if len(selected_node) == 1 and node in selected_node:
+                influence = 0
+            if node not in selected_node:
+                selected_node.append(node)
+                influence = ic_diffusion_model(graph, selected_node, rand_iter)
+                selected_node.remove(node)
+            if influence > max_influence:
+                max_influence = influence
+                best_node = node
+        if best_node is not None:
+            selected_node.append(best_node)
+            bar.update(1)
+    return selected_node
+    
+def generate_diffusion_list(G, seed, random_iter = 1):
+    diffusion_list = []
+    diffusion_list.append(seed)
+    
+    for i in range(random_iter):
+        UsedNodes = deepcopy(seed)
+        ActivatedNodes = deepcopy(seed)
+        tempSeed = deepcopy(seed)
+        CurrentActivatedNodes = []
+        index = 1
+        while tempSeed:
+            for v in tempSeed:
+                print("v",v)
+                for w in G.successors(v):
+                    print("successor",w)
+                    if w not in ActivatedNodes:
+                        if random.random() < G[v][w]["weight"]:
+                            CurrentActivatedNodes.append(w)
+                        UsedNodes.append(w)
+            tempSeed = CurrentActivatedNodes
+            ActivatedNodes.extend(CurrentActivatedNodes)
+            if i == 0:
+                diffusion_list.append(CurrentActivatedNodes)
+            else:
+                if index > len(diffusion_list):
+                    diffusion_list.append(CurrentActivatedNodes)
+                else:
+                    diffusion_list[index].extend(x for x in CurrentActivatedNodes and x not in diffusion_list[index])
+            CurrentActivatedNodes = []
+            index += 1
+    
+    return diffusion_list  
+
+def infmax_diffusion_list(embeddings, select_num, k = 10, rand_iter=10):
+    n = len(embeddings) 
+    graph = nx.DiGraph()
+    bar = tqdm(range(n),desc=f'construct graph')
+    for i in range(n):
+        cur_emb = embeddings[i].reshape(1, -1)
+        cur_scores = np.sum(cosine_similarity(embeddings, cur_emb), axis=1) 
+        sorted_indices = np.argsort(cur_scores).tolist()[-k-1:-1]
+        sum_weight = cur_scores[sorted_indices].sum()
+        for idx in sorted_indices:
+            if idx!=i:
+                graph.add_edge(i, idx, weight = cur_scores[idx]/sum_weight)
+        bar.update(1)
+    selected_node = []
+    out_degrees = graph.out_degree()
+    max_out_degree_node = max(out_degrees, key=lambda x: x[1])
+    initial_point = max_out_degree_node[0]
+    selected_node.append(initial_point)
+    bar = tqdm(select_num-1,desc=f'vote')
+    for i in range(select_num-1):
+        max_influence = 0 
+        best_node = None
+        for i, node in enumerate(graph.nodes()):
+            if len(selected_node) == 1 and node in selected_node:
+                influence = 0
+            if node not in selected_node:
+                selected_node.append(node)
+                influence = ic_diffusion_model(graph, selected_node, rand_iter)
+                selected_node.remove(node)
+            if influence > max_influence:
+                max_influence = influence
+                best_node = node
+        if best_node is not None:
+            selected_node.append(best_node)
+            bar.update(1)
+
+    diffusion_list = generate_diffusion_list(graph, selected_node)    
+            
+    
+    return selected_node, diffusion_list
 
 def iterative_selection(
     train_embs,
@@ -499,15 +631,21 @@ def selective_annotation(args, **kwargs):
             tokenizer_gpt=kwargs["tokenizer_gpt"],
             args=args,
         )
+    elif args.selective_annotation_method=='ideal':
+        selected_indices = infmax(embeddings=kwargs['embeddings'],select_num=args.annotation_size,k=10)
+    elif args.selective_annotation_method in ['auto_ideal']:
+        selected_node, diffusion_list = infmax_diffusion_list(embeddings=kwargs['embeddings'],select_num=args.annotation_size,k=10)
+        return selected_node, diffusion_list
     elif args.selective_annotation_method in QUERYLESS_SUBMODLIB_FUNCTIONS:
         FunctionClass = getattr(submodlib.functions, args.selective_annotation_method)
 
         sijs = compute_pairwise_similarities(
             tensor1=kwargs["embeddings"],
             sparse=False,
-            metric="cosine",
-            scaling="additive",
+            metric="dot",
+            scaling="min-max",
         )
+        
         sijs = sijs.numpy()
 
         if args.selective_annotation_method == "GraphCutFunction":

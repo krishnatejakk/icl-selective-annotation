@@ -1,10 +1,10 @@
 TASK_NAMES = [
-    "mnli",
+    "hellaswag",
     "rte",
+    "dbpedia_14",
+    "mnli",
     "sst5",
     "mrpc",
-    "dbpedia_14",
-    "hellaswag",
     "xsum",
     # "nq", # Needs OpenAI API
 ]
@@ -66,6 +66,8 @@ QUERYFULL_SUBMODLIB_FUNCTIONS = [
 
 
 SELECTIVE_ANNOTATION_METHODS = [
+    "ideal",
+    "auto_ideal",
     *QUERYLESS_SUBMODLIB_FUNCTIONS,
     "random",
     "diversity",
