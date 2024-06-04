@@ -36,6 +36,7 @@ parser.add_argument("--model_key", type=str)
 parser.add_argument("--prompt_retrieval_method", default="similar", type=str)
 parser.add_argument("--upsample", action="store_true")
 parser.add_argument("--model_name", default='meta-llama/Meta-Llama-3-8B-Instruct', type=str)
+parser.add_argument("--two_step_budget_multiplier", default=10, type=int)
 #'EleutherAI/gpt-j-6B'
 #'mistralai/Mistral-7B-v0.3'
 #'meta-llama/Meta-Llama-3-8B'

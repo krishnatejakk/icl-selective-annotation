@@ -37,6 +37,12 @@ QUERYLESS_SUBMODLIB_FUNCTIONS = [
     # "SetCoverMutualInformationFunction",
 ]
 
+QUERYLESS_SUBMODLIB_FUNCTIONS_TWO_SEQUENCE = ["GraphCutFunction-DisparityMinFunction",
+                                              "FacilityLocationFunction-DisparityMinFunction",
+                                              "GraphCutFunction-DisparitySumFunction",
+                                              "FacilityLocationFunction-DisparitySumFunction",
+                                              ]
+
 QUERYFULL_SUBMODLIB_FUNCTIONS = [
     # "ConcaveOverModularFunction",
     # "DisparityMinFunction",
