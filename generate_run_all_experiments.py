@@ -6,7 +6,7 @@ SELECTIVE_ANNOTATION_METHODS = [
     # "random",
     # "diversity",
     "ideal",
-    #"auto_ideal",
+    # "auto_ideal",
     "fast_votek",
     "votek",
     "least_confidence",

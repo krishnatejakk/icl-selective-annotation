@@ -128,8 +128,8 @@ if __name__ == "__main__":
                 data_module = MetaICLData(
                     method="direct", 
                     tokenizer = tokenizer,
-                    max_length=4096, 
-                    max_length_per_example=512
+                    max_length=1024, 
+                    max_length_per_example=256
                 )
                 
             inference_model = MetaICLModel(args=args)

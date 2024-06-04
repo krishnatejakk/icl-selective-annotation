@@ -35,7 +35,12 @@ def prompt_retrieval(
     cos = nn.CosineSimilarity(dim=1, eps=1e-6)
     eval_example_num = len(eval_examples)
     bar = tqdm(range(eval_example_num), desc="Retrieve examples from annotated pool")
-    tokenizer = AutoTokenizer.from_pretrained("gpt2")
+    if args.model_name in ["EleutherAI/gpt-j-6B", "EleutherAI/gpt-neo-125m"]:
+        tokenizer = AutoTokenizer.from_pretrained("gpt2")
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(
+            args.model_name, cache_dir=args.model_cache_dir
+        )    
     prompt_cache_dir = os.path.join(args.output_dir, prompt_identifier)
     if not os.path.isdir(prompt_cache_dir):
         os.makedirs(prompt_cache_dir, exist_ok=True)
