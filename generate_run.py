@@ -53,13 +53,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name",
         type=str,
-        default="EleutherAI/gpt-j-6B",
+        default="EleutherAI/gpt-neo-125m",
         help="Model name to use for all experiments.",
     )
     parser.add_argument(
     "--embedding_model",
-    # default="sentence-transformers/all-mpnet-base-v2",
-    default="BAAI/bge-large-en-v1.5",
+    default="sentence-transformers/all-mpnet-base-v2",
+    # default="BAAI/bge-large-en-v1.5",
     type=str,
     )
     parser.add_argument(

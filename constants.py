@@ -75,6 +75,7 @@ SELECTIVE_ANNOTATION_METHODS = [
     "ideal",
     "auto_ideal",
     *QUERYLESS_SUBMODLIB_FUNCTIONS,
+    *QUERYLESS_SUBMODLIB_FUNCTIONS_TWO_SEQUENCE,
     "random",
     "diversity",
     "fast_votek",

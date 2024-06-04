@@ -5,11 +5,15 @@ SELECTIVE_ANNOTATION_METHODS = [
     # *QUERYLESS_SUBMODLIB_FUNCTIONS,
     # "random",
     # "diversity",
-    "ideal",
+    # "ideal",
     # "auto_ideal",
-    "fast_votek",
-    "votek",
-    "least_confidence",
+    # "fast_votek",
+    # "votek",
+    # "least_confidence",
+    "GraphCutFunction-DisparityMinFunction",
+    "FacilityLocationFunction-DisparityMinFunction",
+    "GraphCutFunction-DisparitySumFunction",
+    "FacilityLocationFunction-DisparitySumFunction"
 ]
 
 def generate_commands(model_name, embedding_model, subsample):
